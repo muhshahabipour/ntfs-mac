@@ -21,6 +21,14 @@ import Testing
         #expect(ntfsDisk(from: desc(kind: kind), bsdName: "disk4s1") == nil)
     }
 
+    @Test func paragonMountedVolumesAreRecognised() {
+        var d = desc(kind: "ufsd_NTFS")
+        d["DAVolumePath"] = "file:///Volumes/Backup/"
+        let disk = ntfsDisk(from: d, bsdName: "disk4s1")
+        #expect(disk != nil)
+        #expect(disk?.nativelyMounted == true)
+    }
+
     @Test func mbrNTFSContentIsRecognisedWithoutVolumeKind() {
         #expect(ntfsDisk(from: desc(kind: nil, content: "Windows_NTFS"), bsdName: "disk5s1") != nil)
     }

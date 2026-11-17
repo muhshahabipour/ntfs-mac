@@ -39,3 +39,26 @@ public func persianSpeed(_ bytesPerSecond: Double) -> String {
         : "\(Int((b / 1e3).rounded())) کیلوبایت بر ثانیه"
     return persianDigits(text)
 }
+
+// MARK: English (default UI language)
+
+public func englishSize(_ bytes: UInt64) -> String {
+    let b = Double(bytes)
+    switch b {
+    case 1e12...: return "\(compact(b / 1e12)) TB"
+    case 1e9...:  return "\(compact(b / 1e9)) GB"
+    case 1e6...:  return "\(compact(b / 1e6)) MB"
+    case 1e3...:  return "\(compact(b / 1e3)) KB"
+    default:      return "\(bytes) B"
+    }
+}
+
+public func englishPercent(_ fraction: Double) -> String {
+    let f = fraction.isNaN ? 0 : min(1, max(0, fraction))
+    return "\(Int((f * 100).rounded()))%"
+}
+
+public func englishSpeed(_ bytesPerSecond: Double) -> String {
+    let b = bytesPerSecond.isNaN ? 0 : max(0, bytesPerSecond)
+    return b >= 1e6 ? "\(Int((b / 1e6).rounded())) MB/s" : "\(Int((b / 1e3).rounded())) KB/s"
+}

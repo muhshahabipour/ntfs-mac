@@ -19,6 +19,7 @@ final class HelperClient: @unchecked Sendable {
     }
 
     func register() throws { try service.register() }
+    func unregister() async throws { try await service.unregister() }
 
     func send(_ request: HelperRequest) async throws -> HelperResponse {
         let payload = try JSONEncoder().encode(request)

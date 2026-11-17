@@ -62,3 +62,27 @@ import Testing
         #expect(ntfsDisk(from: d, bsdName: "disk4s1")?.nativelyMounted == true)
     }
 }
+
+@Suite struct EnglishFormatTests {
+    @Test func sizes() {
+        #expect(englishSize(1_200_000_000_000) == "1.2 TB")
+        #expect(englishSize(2_000_000_000_000) == "2 TB")
+        #expect(englishSize(100_000_000_000) == "100 GB")
+        #expect(englishSize(5_000_000) == "5 MB")
+        #expect(englishSize(2_000) == "2 KB")
+        #expect(englishSize(512) == "512 B")
+        #expect(englishSize(0) == "0 B")
+    }
+
+    @Test func percents() {
+        #expect(englishPercent(0.62) == "62%")
+        #expect(englishPercent(1.7) == "100%")
+        #expect(englishPercent(.nan) == "0%")
+    }
+
+    @Test func speeds() {
+        #expect(englishSpeed(185_000_000) == "185 MB/s")
+        #expect(englishSpeed(800_000) == "800 KB/s")
+        #expect(englishSpeed(0) == "0 KB/s")
+    }
+}

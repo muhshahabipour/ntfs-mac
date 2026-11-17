@@ -32,7 +32,8 @@ public func ntfsDisk(from description: [String: Any], bsdName: String) -> NTFSDi
 
     let kind = description["DAVolumeKind"] as? String
     let content = description["DAMediaContent"] as? String
-    guard kind == "ntfs" || (kind == nil && content == "Windows_NTFS") else { return nil }
+    // "ufsd_NTFS" is Paragon's driver: it mounts NTFS itself, so treat it like macOS's native mount (we release it).
+    guard kind == "ntfs" || kind == "ufsd_NTFS" || (kind == nil && content == "Windows_NTFS") else { return nil }
 
     let label = (description["DAVolumeName"] as? String).flatMap { $0.isEmpty ? nil : $0 }
     let size = (description["DAMediaSize"] as? NSNumber)?.uint64Value ?? 0
