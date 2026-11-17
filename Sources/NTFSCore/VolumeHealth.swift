@@ -1,6 +1,6 @@
 import Foundation
 
-public enum VolumeHealth: Equatable, Sendable {
+public enum VolumeHealth: Equatable, Sendable, Codable {
     case clean
     /// Not cleanly unmounted (typically Windows Fast Startup). Repairable with `ntfsfix`, with user consent.
     case dirty
