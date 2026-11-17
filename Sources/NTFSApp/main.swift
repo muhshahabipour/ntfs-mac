@@ -15,6 +15,14 @@ case "probe":
     guard let dev = args.dropFirst().first else { print("usage: probe /dev/diskN"); exit(2) }
     do { print(try await client.send(.probe(device: dev))) }
     catch { print("error:", error) }
+case "mount":
+    guard let dev = args.dropFirst().first else { print("usage: mount /dev/diskN [label]"); exit(2) }
+    do { print(try await client.send(.mount(device: dev, label: args.dropFirst(2).first))) }
+    catch { print("error:", error) }
+case "unmount":
+    guard let dev = args.dropFirst().first else { print("usage: unmount /dev/diskN"); exit(2) }
+    do { print(try await client.send(.unmount(device: dev))) }
+    catch { print("error:", error) }
 default:
-    print("usage: NTFS status | register | probe /dev/diskN")
+    print("usage: NTFS status | register | probe|mount|unmount /dev/diskN")
 }
