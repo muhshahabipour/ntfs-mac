@@ -3,3 +3,4 @@
 *.img
 *.dmg
 .DS_Store
+build/
