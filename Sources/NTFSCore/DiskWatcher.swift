@@ -7,9 +7,12 @@ public struct NTFSDisk: Equatable, Identifiable, Sendable {
     public let label: String?
     public let sizeBytes: UInt64
     public let deviceNode: String
+    /// macOS's own (read-only) NTFS driver already mounted it; we must release that before our read/write mount.
+    public let nativelyMounted: Bool
 
-    public init(id: String, label: String?, sizeBytes: UInt64, deviceNode: String) {
+    public init(id: String, label: String?, sizeBytes: UInt64, deviceNode: String, nativelyMounted: Bool = false) {
         self.id = id; self.label = label; self.sizeBytes = sizeBytes; self.deviceNode = deviceNode
+        self.nativelyMounted = nativelyMounted
     }
 }
 
@@ -33,7 +36,8 @@ public func ntfsDisk(from description: [String: Any], bsdName: String) -> NTFSDi
 
     let label = (description["DAVolumeName"] as? String).flatMap { $0.isEmpty ? nil : $0 }
     let size = (description["DAMediaSize"] as? NSNumber)?.uint64Value ?? 0
-    return NTFSDisk(id: bsdName, label: label, sizeBytes: size, deviceNode: "/dev/\(bsdName)")
+    return NTFSDisk(id: bsdName, label: label, sizeBytes: size, deviceNode: "/dev/\(bsdName)",
+                    nativelyMounted: description["DAVolumePath"] != nil)
 }
 
 /// DiskArbitration-backed event source. Verified manually (Task 10), not unit-tested.

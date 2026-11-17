@@ -85,6 +85,13 @@ public actor MountEngine {
         throw MountError.extensionNotEnabled
     }
 
+    /// Unmounts macOS's own read-only mount so ntfs-3g can take the device.
+    public func releaseNativeMount(_ disk: NTFSDisk) async throws {
+        guard isValidDiskDevice(disk.deviceNode) else { throw MountError.invalidDevice }
+        let r = try await exec(tools.diskutil, ["unmount", disk.deviceNode])
+        guard r.status == 0 else { throw MountError.failed(r.stderr.trimmingCharacters(in: .whitespacesAndNewlines)) }
+    }
+
     /// `ntfsfix -d` — only for a volume that is dirty (never hibernated or otherwise unsafe).
     public func repair(_ disk: NTFSDisk) async throws {
         let health = try await probe(disk)

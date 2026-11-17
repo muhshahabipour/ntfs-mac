@@ -11,10 +11,11 @@ public enum HelperRequest: Codable, Equatable, Sendable {
     case repair(device: String)
     case unmount(device: String)
     case diskGone(device: String)
+    case releaseNative(device: String)
 
     var device: String {
         switch self {
-        case .probe(let d), .repair(let d), .unmount(let d), .diskGone(let d): d
+        case .probe(let d), .repair(let d), .unmount(let d), .diskGone(let d), .releaseNative(let d): d
         case .mount(let d, _): d
         }
     }
@@ -58,6 +59,9 @@ public actor HelperService {
                 return .done
             case .unmount:
                 try await engine.unmount(NTFSDisk(id: id, label: nil, sizeBytes: 0, deviceNode: node))
+                return .done
+            case .releaseNative:
+                try await engine.releaseNativeMount(NTFSDisk(id: id, label: nil, sizeBytes: 0, deviceNode: node))
                 return .done
             case .diskGone:
                 await engine.diskDisappeared(id: id)
