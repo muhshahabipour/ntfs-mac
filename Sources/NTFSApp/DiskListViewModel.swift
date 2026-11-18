@@ -32,6 +32,7 @@ final class DiskListViewModel {
     private let counters = IOKitCounterSource()
     private var source: DiskArbitrationSource?
     private var smoothers: [String: ThroughputSmoother] = [:]
+    private var activeSince: [String: Date] = [:]
     private var detectors: [String: ActivityDetector] = [:]
 
     var needsAttention: Bool {
@@ -120,7 +121,7 @@ final class DiskListViewModel {
         case .disappeared(let id):
             guard let card = cards.first(where: { $0.id == id }) else { return }
             cards.removeAll { $0.id == id }
-            smoothers[id] = nil; detectors[id] = nil
+            smoothers[id] = nil; detectors[id] = nil; activeSince[id] = nil
             Task { _ = try? await client.send(.diskGone(device: card.disk.deviceNode)) }
         }
     }
@@ -150,6 +151,10 @@ final class DiskListViewModel {
                 if case .health(let again) = try await call(.probe(device: disk.deviceNode)) { health = again }
             }
             update(id) { $0.health = health }
+            if !health.canMountReadWrite {
+                let name = cards.first(where: { $0.id == id })?.disk.label ?? "NTFS"
+                Notifier.shared.post(id: "attention-\(id)", title: S.notifyAttentionTitle(name), body: S.warning(for: health))
+            }
             if health.canMountReadWrite,
                case .mounted(let mp) = try await call(.mount(device: disk.deviceNode, label: disk.label)) {
                 update(id) { $0.mountPoint = mp }
@@ -171,7 +176,7 @@ final class DiskListViewModel {
     func erase(_ id: String, label: String) async -> String? {
         guard let disk = cards.first(where: { $0.id == id })?.disk else { return S.message(for: MountError.invalidDevice) }
         update(id) { $0.busy = .erasing; $0.errorText = nil; $0.mountPoint = nil; $0.userUnmounted = false }
-        smoothers[id] = nil; detectors[id] = nil
+        smoothers[id] = nil; detectors[id] = nil; activeSince[id] = nil
         var failure: String?
         do { _ = try await call(.erase(device: disk.deviceNode, label: label)) }
         catch { failure = S.message(for: error) }
@@ -194,7 +199,7 @@ final class DiskListViewModel {
             do {
                 _ = try await call(.unmount(device: disk.deviceNode))
                 update(id) { $0.mountPoint = nil; $0.userUnmounted = true; $0.isActive = false; $0.bytesPerSecond = 0 }
-                smoothers[id] = nil; detectors[id] = nil
+                smoothers[id] = nil; detectors[id] = nil; activeSince[id] = nil
             } catch {
                 update(id) { $0.errorText = S.message(for: error) }
             }
@@ -301,6 +306,12 @@ final class DiskListViewModel {
             let active = detector.update(bytesPerSecond: bps, at: now)
             detectors[card.id] = detector
             update(card.id) { $0.bytesPerSecond = bps; $0.isActive = active }
+            // Tell the user when a real transfer (at least 10 s) has finished.
+            if active, activeSince[card.id] == nil { activeSince[card.id] = now }
+            if !active, let since = activeSince.removeValue(forKey: card.id), now.timeIntervalSince(since) >= 10 {
+                let name = card.disk.label ?? "NTFS"
+                Notifier.shared.post(id: "transfer-\(card.id)", title: S.notifyTransferTitle(name), body: S.notifyTransferBody(name))
+            }
         }
     }
 }

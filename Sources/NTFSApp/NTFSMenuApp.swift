@@ -10,6 +10,7 @@ struct NTFSMenuApp: App {
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var controller: StatusController?
     func applicationDidFinishLaunching(_ notification: Notification) {
+        Notifier.shared.start()
         let c = StatusController()
         controller = c
         // First launch: show the window so the setup guide is the first thing the user sees.

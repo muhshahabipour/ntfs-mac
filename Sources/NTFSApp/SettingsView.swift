@@ -5,6 +5,9 @@ struct SettingsView: View {
     let model: DiskListViewModel
     @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
     @AppStorage("language") private var languageRaw = AppLanguage.english.rawValue
+    @AppStorage(Notifier.defaultsKey) private var notificationsOn = true
+    @State private var launchAtLogin = LoginItem.isEnabled
+    @State private var loginError = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 22) {
@@ -20,6 +23,17 @@ struct SettingsView: View {
             }
             row(title: S.languageHeader) {
                 ForEach(AppLanguage.allCases) { l in chip(l.label, selected: languageRaw == l.rawValue) { languageRaw = l.rawValue } }
+            }
+            Divider()
+            VStack(alignment: .leading, spacing: 10) {
+                Text(S.generalHeader).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                Toggle(S.launchAtLogin, isOn: Binding(get: { launchAtLogin }, set: { on in
+                    do { try LoginItem.set(on); loginError = false } catch { loginError = true }
+                    launchAtLogin = LoginItem.isEnabled
+                })).font(.system(size: 12))
+                if loginError { Text(S.launchAtLoginFailed).font(.system(size: 11)).foregroundStyle(Palette.red) }
+                Toggle(S.notificationsToggle, isOn: $notificationsOn).font(.system(size: 12))
+                    .onChange(of: notificationsOn) { _, on in if on { Notifier.shared.requestAuthorization() } }
             }
             Divider()
             VStack(alignment: .leading, spacing: 10) {
