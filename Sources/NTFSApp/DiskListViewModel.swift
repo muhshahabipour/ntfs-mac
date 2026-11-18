@@ -153,7 +153,12 @@ final class DiskListViewModel {
         var failure: String?
         do { _ = try await call(.erase(device: disk.deviceNode, label: label)) }
         catch { failure = S.message(for: error) }
-        update(id) { $0.busy = nil; $0.used = 0 }
+        // The label we hold came from DiskArbitration before the format; use the new one for the card and mount point.
+        let newLabel = failure == nil ? ntfsLabel(label) : disk.label
+        update(id) {
+            $0.disk = NTFSDisk(id: disk.id, label: newLabel, sizeBytes: disk.sizeBytes, deviceNode: disk.deviceNode)
+            $0.busy = nil; $0.used = 0
+        }
         await connect(id)
         return failure
     }
