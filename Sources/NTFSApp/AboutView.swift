@@ -15,7 +15,6 @@ struct AboutView: View {
                 HStack(spacing: 14) {
                     Link("macFUSE", destination: URL(string: "https://macfuse.github.io")!)
                     Link("ntfs-3g", destination: URL(string: "https://github.com/tuxera/ntfs-3g")!)
-                    Link(S.sourceCode, destination: URL(string: "https://github.com/muhshahabipour/ntfs-mac")!)
                 }
                 .font(.system(size: 12))
             }

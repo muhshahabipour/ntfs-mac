@@ -56,7 +56,6 @@ enum S {
                                          "«NTFS» را در حریم خصوصی و امنیت ← Full Disk Access روشن کنید تا برنامه بتواند روی دیسک بنویسد.") }
     static var aboutBlurb: String { tr("Read and write NTFS disks on your Mac.", "خواندن و نوشتن روی دیسک‌های NTFS در مک.") }
     static var aboutBuiltOn: String { tr("Built on", "ساخته‌شده بر پایهٔ") }
-    static var sourceCode: String { tr("Source code", "کد برنامه") }
     static var aboutDisclaimer: String {
         tr("A personal project. Keep backups of important disks.", "یک پروژهٔ شخصی. از دیسک‌های مهم نسخهٔ پشتیبان نگه دارید.")
     }
