@@ -11,13 +11,6 @@
 
 A small, native macOS menu bar app that lets you **read and write NTFS disks** — built for people who move drives between a Mac and Windows and want something calm, fast and reliable (the app talks to the stable `ntfs-3g` driver instead of a bundled kernel driver).
 
-- **Menu bar cards** for every connected NTFS disk: Read & Write status, capacity ring, live transfer speed, Open / Unmount / Eject.
-- **Safe by default.** Disks that Windows left hibernated (Fast Startup) or unclean stay read-only, with a clear explanation. Only a plainly *dirty* disk offers **Repair & Connect**.
-- **Mount / Unmount / Eject** are separate. A disk that was unmounted (even from Finder) shows as *Not mounted* with a **Mount** button.
-- **Erase** (quick NTFS format) lives in the main window, behind a typed confirmation, and refuses internal disks and non-NTFS partitions.
-- **English and Persian** UI (English is the default), light / dark / auto.
-- Notifications when a transfer finishes or a disk needs attention, launch at login, and a first-run setup guide.
-
 خواندن و نوشتن روی دیسک‌های NTFS در مک، از نوار منو.
 
 <p align="center">
@@ -30,6 +23,14 @@ A small, native macOS menu bar app that lets you **read and write NTFS disks** �
 **[Download](https://github.com/muhshahabipour/ntfs-mac/releases/latest)**
 
 > Personal project. Not notarized, no warranty — keep backups of important disks.
+
+- **Menu bar cards** for every connected NTFS disk: Read & Write status, capacity ring, live transfer speed, Open / Unmount / Eject.
+- **Safe by default.** Disks that Windows left hibernated (Fast Startup) or unclean stay read-only, with a clear explanation. Only a plainly *dirty* disk offers **Repair & Connect**.
+- **Mount / Unmount / Eject** are separate. A disk that was unmounted (even from Finder) shows as *Not mounted* with a **Mount** button.
+- **Erase** (quick NTFS format) lives in the main window, behind a typed confirmation, and refuses internal disks and non-NTFS partitions.
+- **English and Persian** UI (English is the default), light / dark / auto.
+- Notifications when a transfer finishes or a disk needs attention, launch at login, and a first-run setup guide.
+
 
 ## Requirements
 
