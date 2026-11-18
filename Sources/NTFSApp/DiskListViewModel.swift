@@ -264,6 +264,9 @@ final class DiskListViewModel {
         for card in cards where card.busy == nil {
             if let mp = card.mountPoint, !Self.isMountPoint(mp) {
                 update(card.id) { $0.mountPoint = nil; $0.userUnmounted = true; $0.isActive = false; $0.bytesPerSecond = 0 }
+                // Tell the helper to forget the old mount point, otherwise the next mount gets a " 2" suffix.
+                let node = card.disk.deviceNode
+                Task { _ = try? await client.send(.diskGone(device: node)) }
             }
         }
         for card in cards where card.mountPoint != nil {
