@@ -17,6 +17,7 @@ public struct ToolPaths: Sendable {
     public var ntfs3g = "/opt/homebrew/bin/ntfs-3g"
     public var probe = "/opt/homebrew/bin/ntfs-3g.probe"
     public var ntfsfix = "/opt/homebrew/bin/ntfsfix"
+    public var ntfsinfo = "/opt/homebrew/bin/ntfsinfo"
     public var mkntfs = "/opt/homebrew/sbin/mkntfs"
     public var diskutil = "/usr/sbin/diskutil"
     public var mount = "/sbin/mount"
@@ -82,6 +83,11 @@ public actor MountEngine {
             return existing
         }
 
+        // DiskArbitration has no label while the volume is unmounted; read it from the volume itself.
+        var disk = disk
+        if disk.label?.isEmpty != false, let label = await volumeLabel(of: disk.deviceNode) {
+            disk = NTFSDisk(id: disk.id, label: label, sizeBytes: disk.sizeBytes, deviceNode: disk.deviceNode)
+        }
         let mp = mountPoint(for: disk, taken: Set(mounted.values))
         do { try files.makeDirectory(mp) } catch { throw MountError.failed("\(error)") }
         mounted[disk.id] = mp
@@ -103,6 +109,22 @@ public actor MountEngine {
         }
         forget(disk.id)
         throw MountError.extensionNotEnabled
+    }
+
+    /// "Volume Name:" from `ntfsinfo -m`, or nil when unreadable/empty.
+    func volumeLabel(of device: String) async -> String? {
+        guard let r = try? await exec(tools.ntfsinfo, ["-f", "-m", device]) else { return nil }
+        Logger(subsystem: "com.local.ntfs", category: "label")
+            .notice("ntfsinfo \(device, privacy: .public) status=\(r.status) out=\(String(r.stdout.prefix(400)), privacy: .public) err=\(String(r.stderr.prefix(200)), privacy: .public)")
+        guard r.status == 0 else { return nil }
+        for line in r.stdout.split(separator: "\n") {
+            let t = line.trimmingCharacters(in: .whitespaces)
+            if t.hasPrefix("Volume Name:") {
+                let name = t.dropFirst("Volume Name:".count).trimmingCharacters(in: .whitespaces)
+                return name.isEmpty ? nil : name
+            }
+        }
+        return nil
     }
 
     private func macFUSEMountPoint(of device: String) async throws -> String? {

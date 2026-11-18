@@ -115,7 +115,13 @@ final class DiskListViewModel {
     private func handle(_ event: DiskEvent) {
         switch event {
         case .appeared(let disk):
-            guard !cards.contains(where: { $0.id == disk.id }) else { return }
+            if let i = cards.firstIndex(where: { $0.id == disk.id }) {
+                // A native (macOS) mount reports the real volume label; ours would just echo what we chose.
+                if disk.nativelyMounted, let label = disk.label, cards[i].mountPoint == nil, cards[i].disk.label != label {
+                    cards[i].disk = disk
+                }
+                return
+            }
             cards.append(Card(id: disk.id, disk: disk, busy: .connecting))
             Task { await connect(disk.id) }
         case .disappeared(let id):

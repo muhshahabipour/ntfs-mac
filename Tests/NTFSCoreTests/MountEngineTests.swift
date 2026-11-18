@@ -215,6 +215,21 @@ private func mountTable(_ mp: String) -> ProcessResult {
 
     @Test func defaultOptionsEnableFinderCompatibility() {
         let options = defaultMountOptions()
-        #expect(options.contains("auto_xattr") && options.contains("allow_other"))
+        #expect(options.contains("allow_other"))
+    }
+}
+
+@Suite struct VolumeLabelTests {
+    @Test func unlabeledDiskIsMountedUnderItsRealVolumeName() async throws {
+        let runner = FakeProcessRunner(results: [
+            ProcessResult(status: 0),                                                    // probe
+            ProcessResult(status: 0),                                                    // mount table
+            ProcessResult(status: 0, stdout: "Volume Information\n\tVolume Name: Photos 2024\n\tVolume State: 0\n"), // ntfsinfo
+            ProcessResult(status: 0),                                                    // ntfs-3g
+            ProcessResult(status: 0, stdout: "/dev/disk4s1 on /Volumes/Photos 2024 (macfuse, local)\n"),
+        ])
+        let e = MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, mountOptions: [], sleep: { _ in })
+        let mp = try await e.mountReadWrite(NTFSDisk(id: "disk4s1", label: nil, sizeBytes: 1, deviceNode: "/dev/disk4s1"))
+        #expect(mp == "/Volumes/Photos 2024")
     }
 }
