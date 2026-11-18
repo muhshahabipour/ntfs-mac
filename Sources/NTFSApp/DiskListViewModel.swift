@@ -63,6 +63,26 @@ final class DiskListViewModel {
                                   totalBytes: $0.disk.sizeBytes, usedBytes: $0.used, state: state(of: $0)) }
     }
 
+    struct SetupStep: Identifiable {
+        let id: String
+        let title: String
+        let detail: String
+        let done: Bool
+        var actionTitle: String?
+    }
+
+    /// The first-run checklist; empty once everything is in place.
+    var setupSteps: [SetupStep] {
+        let steps = [
+            SetupStep(id: "macfuse", title: S.stepMacFUSE, detail: S.stepMacFUSEHow,
+                      done: !problems.contains(.macFUSEMissing) && !problems.contains { if case .macFUSETooOld = $0 { true } else { false } }),
+            SetupStep(id: "ntfs3g", title: S.stepNTFS3G, detail: S.stepNTFS3GHow, done: !problems.contains(.ntfs3gMissing)),
+            SetupStep(id: "helper", title: S.stepHelper, detail: S.stepHelperHow, done: helperStatus == .enabled, actionTitle: S.enable),
+            SetupStep(id: "diskAccess", title: S.stepAccess, detail: S.stepAccessHow, done: diskAccessOK, actionTitle: S.openSettings),
+        ]
+        return steps.allSatisfy(\.done) ? [] : steps
+    }
+
     var setupItems: [SetupItem] {
         var items = problems.map { SetupItem(id: "problem", text: S.problem($0)) }
         switch helperStatus {

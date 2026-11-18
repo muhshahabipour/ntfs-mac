@@ -37,6 +37,25 @@ enum S {
     static var helperRowTitle: String { tr("Helper service", "سرویس کمکی") }
     static var diskAccessRowTitle: String { tr("Full Disk Access", "دسترسی کامل به دیسک") }
     static var openApp: String { tr("Open App", "باز کردن برنامه") }
+    static var sectionAbout: String { tr("About", "درباره") }
+    static var setupTitle: String { tr("Get started", "شروع کار") }
+    static func setupProgress(_ done: Int, _ total: Int) -> String {
+        let t = tr("\(done) of \(total) done", "\(done) از \(total) انجام شد")
+        return AppLanguage.current == .persian ? persianDigits(t) : t
+    }
+    static var stepMacFUSE: String { tr("Install macFUSE 5", "نصب macFUSE نسخهٔ ۵") }
+    static var stepMacFUSEHow: String { tr("Run in Terminal: brew install --cask macfuse, then enable its extension in System Settings → General → Login Items & Extensions → File System Extensions.",
+                                          "در ترمینال: brew install --cask macfuse، سپس افزونهٔ آن را در تنظیمات سیستم ← عمومی ← ورودی‌ها و افزونه‌ها ← File System Extensions روشن کنید.") }
+    static var stepNTFS3G: String { tr("Install ntfs-3g", "نصب ntfs-3g") }
+    static var stepNTFS3GHow: String { tr("Run in Terminal: brew tap gromgit/fuse && brew install gromgit/fuse/ntfs-3g-mac",
+                                         "در ترمینال: brew tap gromgit/fuse && brew install gromgit/fuse/ntfs-3g-mac") }
+    static var stepHelper: String { tr("Enable the helper service", "فعال‌سازی سرویس کمکی") }
+    static var stepHelperHow: String { tr("It mounts disks with the privileges macOS requires.", "برای وصل کردن دیسک‌ها با دسترسی‌ای که macOS می‌خواهد.") }
+    static var stepAccess: String { tr("Allow Full Disk Access", "اجازهٔ دسترسی کامل به دیسک") }
+    static var stepAccessHow: String { tr("Turn on “NTFS” in Privacy & Security → Full Disk Access. This lets the app write to disks.",
+                                         "«NTFS» را در حریم خصوصی و امنیت ← Full Disk Access روشن کنید تا برنامه بتواند روی دیسک بنویسد.") }
+    static var aboutBlurb: String { tr("Read and write NTFS disks on your Mac.", "خواندن و نوشتن روی دیسک‌های NTFS در مک.") }
+    static var aboutBuiltOn: String { tr("Built on macFUSE and ntfs-3g.", "ساخته‌شده بر پایهٔ macFUSE و ntfs-3g.") }
     static var retry: String { tr("Try Again", "تلاش دوباره") }
     static var enable: String { tr("Enable", "فعال‌سازی") }
 

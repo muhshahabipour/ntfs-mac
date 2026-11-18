@@ -2,10 +2,14 @@ import SwiftUI
 import AppKit
 
 enum AppSection: String, CaseIterable, Identifiable {
-    case disks, settings
+    case disks, settings, about
     var id: String { rawValue }
-    var title: String { self == .disks ? S.sectionDisks : S.settings }
-    var icon: String { self == .disks ? "externaldrive" : "gearshape" }
+    var title: String {
+        switch self { case .disks: S.sectionDisks; case .settings: S.settings; case .about: S.sectionAbout }
+    }
+    var icon: String {
+        switch self { case .disks: "externaldrive"; case .settings: "gearshape"; case .about: "info.circle" }
+    }
 }
 
 @MainActor @Observable
@@ -28,8 +32,13 @@ struct MainWindowView: View {
             ScrollView {
                 Group {
                     switch router.section {
-                    case .disks: DiskToolsView(model: model)
+                    case .disks:
+                        VStack(alignment: .leading, spacing: 20) {
+                            SetupGuideView(model: model)
+                            DiskToolsView(model: model)
+                        }
                     case .settings: SettingsView(model: model)
+                    case .about: AboutView()
                     }
                 }
                 .padding(24)

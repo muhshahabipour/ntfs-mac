@@ -9,7 +9,21 @@ struct NTFSMenuApp: App {
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var controller: StatusController?
-    func applicationDidFinishLaunching(_ notification: Notification) { controller = StatusController() }
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        let c = StatusController()
+        controller = c
+        // First launch: show the window so the setup guide is the first thing the user sees.
+        if !UserDefaults.standard.bool(forKey: "didShowWelcome") {
+            UserDefaults.standard.set(true, forKey: "didShowWelcome")
+            c.openMainWindow(.disks)
+        }
+    }
+
+    /// Double-clicking the app in Finder/Dock (while it is already running) opens the main window.
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+        controller?.openMainWindow(.disks)
+        return true
+    }
 }
 
 /// The menu bar item and its popover. An NSPopover (instead of MenuBarExtra's window) resizes
@@ -58,7 +72,7 @@ final class StatusController: NSObject {
         }
     }
 
-    private func openMainWindow(_ section: AppSection) {
+    func openMainWindow(_ section: AppSection) {
         popover.performClose(nil)
         router.section = section
         if mainWindow == nil {
