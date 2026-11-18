@@ -1,18 +1,18 @@
 import SwiftUI
 
-/// Content of the standalone Settings window.
+/// The Settings section of the main window.
 struct SettingsView: View {
-    var onOpenDiskTools: () -> Void = {}
+    let model: DiskListViewModel
     @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
     @AppStorage("language") private var languageRaw = AppLanguage.english.rawValue
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 18) {
-            HStack(spacing: 10) {
-                Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 40, height: 40)
+        VStack(alignment: .leading, spacing: 22) {
+            HStack(spacing: 12) {
+                Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 48, height: 48)
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("NTFS").font(.system(size: 15, weight: .bold))
-                    Text(S.version).font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text("NTFS").font(.system(size: 17, weight: .bold))
+                    Text(S.version).font(.system(size: 12)).foregroundStyle(.secondary)
                 }
             }
             row(title: S.themeHeader) {
@@ -22,14 +22,24 @@ struct SettingsView: View {
                 ForEach(AppLanguage.allCases) { l in chip(l.label, selected: languageRaw == l.rawValue) { languageRaw = l.rawValue } }
             }
             Divider()
-            Button(action: onOpenDiskTools) { Label(S.diskTools, systemImage: "externaldrive.badge.minus") }
-                .buttonStyle(.link).font(.system(size: 12))
+            VStack(alignment: .leading, spacing: 10) {
+                Text(S.permissionsHeader).font(.system(size: 11, weight: .semibold)).foregroundStyle(.secondary)
+                statusRow(S.helperRowTitle, ok: model.helperStatus == .enabled,
+                          action: model.helperStatus == .enabled ? nil : (S.enable, { model.handleSetupAction("helper") }))
+                statusRow(S.diskAccessRowTitle, ok: model.diskAccessOK,
+                          action: (S.openSettings, { model.handleSetupAction("diskAccess") }))
+            }
         }
-        .padding(22)
-        .frame(width: 340)
-        .fixedSize(horizontal: false, vertical: true)
-        .environment(\.layoutDirection, (AppLanguage(rawValue: languageRaw) ?? .english).layoutDirection)
-        .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
+    }
+
+    private func statusRow(_ title: String, ok: Bool, action: (String, () -> Void)?) -> some View {
+        HStack(spacing: 8) {
+            Image(systemName: ok ? "checkmark.circle.fill" : "exclamationmark.circle.fill")
+                .foregroundStyle(ok ? Palette.green : Palette.orange)
+            Text(title).font(.system(size: 12))
+            Spacer()
+            if let action { Button(action.0, action: action.1).controlSize(.small) }
+        }
     }
 
     private func row<C: View>(title: String, @ViewBuilder content: () -> C) -> some View {

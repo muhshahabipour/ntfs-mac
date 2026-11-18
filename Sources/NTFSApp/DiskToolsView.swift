@@ -4,8 +4,6 @@ import NTFSCore
 /// The "Erase a Disk" window. Deliberately separate from the menu bar popover: destructive work gets room and friction.
 struct DiskToolsView: View {
     let model: DiskListViewModel
-    @AppStorage("language") private var languageRaw = AppLanguage.english.rawValue
-    @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
 
     @State private var selectedID: String?
     @State private var newName = ""
@@ -53,11 +51,6 @@ struct DiskToolsView: View {
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(22)
-        .frame(width: 380)
-        .fixedSize(horizontal: false, vertical: true)
-        .environment(\.layoutDirection, (AppLanguage(rawValue: languageRaw) ?? .english).layoutDirection)
-        .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
     }
 
     private func confirmation(_ disk: DiskCardModel) -> some View {

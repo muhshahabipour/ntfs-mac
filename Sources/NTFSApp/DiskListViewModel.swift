@@ -24,6 +24,8 @@ final class DiskListViewModel {
     private(set) var problems: [Problem] = []
     private(set) var helperStatus: HelperStatus = .notRegistered
     private(set) var diskAccessDenied = false
+    /// Full Disk Access is known to work once a disk has been mounted read/write.
+    var diskAccessOK: Bool { diskAccessConfirmed && !diskAccessDenied }
     private var diskAccessConfirmed = UserDefaults.standard.bool(forKey: "diskAccessConfirmed")
 
     private let client = HelperClient()

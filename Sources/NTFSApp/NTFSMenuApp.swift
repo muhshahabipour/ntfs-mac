@@ -19,14 +19,14 @@ final class StatusController: NSObject {
     private let model = DiskListViewModel()
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
-    private var settingsWindow: NSWindow?
-    private var toolsWindow: NSWindow?
+    private var mainWindow: NSWindow?
+    private let router = WindowRouter()
 
     override init() {
         super.init()
         popover.behavior = .transient
         popover.animates = true
-        let hosting = NSHostingController(rootView: PopoverRoot(model: model, onOpenSettings: { [weak self] in self?.openSettings() }, onQuit: { NSApplication.shared.terminate(nil) }))
+        let hosting = NSHostingController(rootView: PopoverRoot(model: model, onOpenSettings: { [weak self] in self?.openMainWindow(.settings) }, onQuit: { NSApplication.shared.terminate(nil) }))
         hosting.sizingOptions = [.preferredContentSize]
         popover.contentViewController = hosting
 
@@ -58,32 +58,21 @@ final class StatusController: NSObject {
         }
     }
 
-    private func openSettings() {
+    private func openMainWindow(_ section: AppSection) {
         popover.performClose(nil)
-        if settingsWindow == nil {
-            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(onOpenDiskTools: { [weak self] in self?.openDiskTools() })))
-            w.title = S.settings
-            w.styleMask = [.titled, .closable]
+        router.section = section
+        if mainWindow == nil {
+            let w = NSWindow(contentViewController: NSHostingController(rootView: MainWindowView(model: model, router: router)))
+            w.styleMask = [.titled, .closable, .miniaturizable, .resizable]
+            w.title = "NTFS"
             w.isReleasedWhenClosed = false
+            w.setContentSize(NSSize(width: 720, height: 480))
+            w.contentMinSize = NSSize(width: 640, height: 420)
             w.center()
-            settingsWindow = w
+            mainWindow = w
         }
-        settingsWindow?.title = S.settings
         NSApp.activate(ignoringOtherApps: true)
-        settingsWindow?.makeKeyAndOrderFront(nil)
-    }
-
-    private func openDiskTools() {
-        if toolsWindow == nil {
-            let w = NSWindow(contentViewController: NSHostingController(rootView: DiskToolsView(model: model)))
-            w.styleMask = [.titled, .closable]
-            w.isReleasedWhenClosed = false
-            w.center()
-            toolsWindow = w
-        }
-        toolsWindow?.title = S.eraseTitle
-        NSApp.activate(ignoringOtherApps: true)
-        toolsWindow?.makeKeyAndOrderFront(nil)
+        mainWindow?.makeKeyAndOrderFront(nil)
     }
 
     @objc private func toggle() {
