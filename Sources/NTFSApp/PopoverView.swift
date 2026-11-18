@@ -68,6 +68,8 @@ struct PopoverView: View {
                 Button(action: onOpenSettings) { Label(S.settings, systemImage: "gearshape") }
                     .buttonStyle(.plain)
                 Spacer()
+                Text(S.version).font(.system(size: 10)).foregroundStyle(.tertiary)
+                Spacer()
                 Button(S.quit, action: onQuit).buttonStyle(.plain)
             }
             .font(.system(size: 11)).foregroundStyle(.secondary)

@@ -11,7 +11,7 @@ struct SettingsView: View {
                 Image(nsImage: NSApp.applicationIconImage).resizable().frame(width: 40, height: 40)
                 VStack(alignment: .leading, spacing: 2) {
                     Text("NTFS").font(.system(size: 15, weight: .bold))
-                    Text(S.settings).font(.system(size: 11)).foregroundStyle(.secondary)
+                    Text(S.version).font(.system(size: 11)).foregroundStyle(.secondary)
                 }
             }
             row(title: S.themeHeader) {

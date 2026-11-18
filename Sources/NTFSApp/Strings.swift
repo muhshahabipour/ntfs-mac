@@ -25,6 +25,14 @@ enum S {
     static var emptySub: String { tr("Connect a disk to get started.", "برای شروع، یک دیسک متصل کنید.") }
 
     static var settings: String { tr("Settings", "تنظیمات") }
+    /// "Version 0.1.0 (12)" read from the app bundle.
+    static var version: String {
+        let info = Bundle.main.infoDictionary
+        let short = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        let text = tr("Version \(short) (\(build))", "نسخهٔ \(short) (\(build))")
+        return AppLanguage.current == .persian ? persianDigits(text) : text
+    }
     static var quit: String { tr("Quit", "خروج") }
     static var themeHeader: String { tr("Appearance", "ظاهر") }
     static var languageHeader: String { tr("Language", "زبان") }

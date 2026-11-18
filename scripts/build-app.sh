@@ -17,6 +17,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Library/LaunchDaemons" "$APP/Conte
 cp "$BIN/NTFSApp"    "$APP/Contents/MacOS/NTFS"
 cp "$BIN/NTFSHelper" "$APP/Contents/MacOS/NTFSHelper"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(git rev-list --count HEAD 2>/dev/null || echo 1)" "$APP/Contents/Info.plist"
 cp Resources/Icon/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp Resources/com.local.ntfs.helper.plist "$APP/Contents/Library/LaunchDaemons/com.local.ntfs.helper.plist"
 
