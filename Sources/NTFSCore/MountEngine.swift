@@ -9,6 +9,8 @@ public enum MountError: Error, Equatable, Sendable, Codable {
     case failed(String)
     /// ntfs-3g started but no mount appeared: the macFUSE FSKit extension is most likely not enabled.
     case extensionNotEnabled
+    /// macOS refused raw access to the disk (TCC): the app needs Full Disk Access.
+    case diskAccessDenied
 }
 
 public struct ToolPaths: Sendable {
@@ -57,6 +59,9 @@ public actor MountEngine {
     public func probe(_ disk: NTFSDisk) async throws -> VolumeHealth {
         guard isValidDiskDevice(disk.deviceNode) else { throw MountError.invalidDevice }
         let r = try await exec(tools.probe, ["--readwrite", disk.deviceNode])
+        // macOS blocks the helper from opening the device without Full Disk Access; ntfs-3g.probe then
+        // exits 14, which would otherwise be misread as "hibernated".
+        if r.status != 0, r.stderr.contains("Operation not permitted") { throw MountError.diskAccessDenied }
         Logger(subsystem: "com.local.ntfs", category: "probe")
             .notice("probe \(disk.deviceNode, privacy: .public) status=\(r.status) stderr=\(r.stderr, privacy: .public) stdout=\(r.stdout, privacy: .public)")
         return classifyHealth(probeStatus: r.status)
@@ -78,6 +83,7 @@ public actor MountEngine {
         } catch { forget(disk.id); throw error }
         guard result.status == 0 else {
             forget(disk.id)
+            if result.stderr.contains("Operation not permitted") { throw MountError.diskAccessDenied }
             throw MountError.failed(result.stderr.trimmingCharacters(in: .whitespacesAndNewlines))
         }
 

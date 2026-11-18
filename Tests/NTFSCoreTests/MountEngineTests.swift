@@ -75,6 +75,13 @@ private func mountTable(_ mp: String) -> ProcessResult {
         #expect(runner.calls.count == 1)
     }
 
+    @Test func tccDenialIsNotMistakenForHibernation() async {
+        let runner = FakeProcessRunner(results: [
+            ProcessResult(status: 14, stderr: "Error opening '/dev/disk4s1': Operation not permitted\n")])
+        await #expect(throws: MountError.diskAccessDenied) { try await engine(runner).mountReadWrite(disk) }
+        #expect(runner.calls.count == 1)
+    }
+
     @Test func missingExtensionIsReportedWhenMountNeverAppears() async {
         let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0)],
                                        fallback: ProcessResult(status: 0, stdout: "/dev/disk3s1 on / (apfs)\n"))

@@ -81,6 +81,16 @@ enum S {
         }
     }
 
+    static var openSettings: String { tr("Open Settings", "باز کردن تنظیمات") }
+    static var diskAccessDeniedText: String {
+        tr("macOS is blocking access to this disk. Turn on “NTFS” in System Settings → Privacy & Security → Full Disk Access, then reconnect the disk.",
+           "macOS دسترسی به این دیسک را مسدود کرده است. در تنظیمات سیستم ← حریم خصوصی و امنیت ← Full Disk Access، «NTFS» را روشن کنید و دیسک را دوباره وصل کنید.")
+    }
+    static var diskAccessTip: String {
+        tr("One-time setup: turn on “NTFS” in Full Disk Access so macOS lets the app write to disks.",
+           "تنظیم یک‌باره: «NTFS» را در Full Disk Access روشن کنید تا macOS اجازهٔ نوشتن روی دیسک‌ها را بدهد.")
+    }
+
     static var helperDisabled: String { tr("The helper service is not enabled.", "سرویس کمکی فعال نیست.") }
     static var helperNeedsApproval: String {
         tr("To finish setup, turn on “NTFS” in System Settings → General → Login Items & Extensions.",
@@ -97,6 +107,7 @@ enum S {
             return tr("The disk is in use by: ", "دیسک در حال استفاده است: ") + holders.joined(separator: tr(", ", "، "))
         case .notClean(let h): return warning(for: h)
         case .toolMissing: return tr("ntfs-3g was not found.", "ntfs-3g پیدا نشد.")
+        case .diskAccessDenied: return diskAccessDeniedText
         case .invalidDevice: return tr("Invalid device.", "دستگاه نامعتبر است.")
         case .failed(let detail): return detail.isEmpty ? tr("The operation failed.", "عملیات ناموفق بود.") : detail
         }

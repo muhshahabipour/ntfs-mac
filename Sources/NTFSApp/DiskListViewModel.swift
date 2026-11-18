@@ -22,6 +22,8 @@ final class DiskListViewModel {
     private(set) var cards: [Card] = []
     private(set) var problems: [Problem] = []
     private(set) var helperStatus: HelperStatus = .notRegistered
+    private(set) var diskAccessDenied = false
+    private var diskAccessConfirmed = UserDefaults.standard.bool(forKey: "diskAccessConfirmed")
 
     private let client = HelperClient()
     private let counters = IOKitCounterSource()
@@ -64,6 +66,11 @@ final class DiskListViewModel {
         case .enabled: break
         case .requiresApproval: items.append(SetupItem(id: "helper", text: S.helperNeedsApproval, action: S.enable))
         case .notRegistered: items.append(SetupItem(id: "helper", text: S.helperDisabled, action: S.enable))
+        }
+        if diskAccessDenied {
+            items.append(SetupItem(id: "diskAccess", text: S.diskAccessDeniedText, action: S.openSettings))
+        } else if !diskAccessConfirmed, helperStatus == .enabled {
+            items.append(SetupItem(id: "diskAccess", text: S.diskAccessTip, action: S.openSettings))
         }
         return items
     }
@@ -120,9 +127,13 @@ final class DiskListViewModel {
             if health.canMountReadWrite,
                case .mounted(let mp) = try await call(.mount(device: disk.deviceNode, label: disk.label)) {
                 update(id) { $0.mountPoint = mp }
+                diskAccessDenied = false
+                diskAccessConfirmed = true
+                UserDefaults.standard.set(true, forKey: "diskAccessConfirmed")
                 refreshUsage(id)
             }
         } catch {
+            if (error as? MountError) == .diskAccessDenied { diskAccessDenied = true }
             update(id) { $0.errorText = S.message(for: error) }
         }
         update(id) { $0.busy = nil }
@@ -171,7 +182,14 @@ final class DiskListViewModel {
         if helperStatus == .requiresApproval { SMAppService.openSystemSettingsLoginItems() }
     }
 
-    func handleSetupAction(_ id: String) { if id == "helper" { enableHelper() } }
+    func handleSetupAction(_ id: String) {
+        switch id {
+        case "helper": enableHelper()
+        case "diskAccess":
+            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") { NSWorkspace.shared.open(url) }
+        default: break
+        }
+    }
 
     // MARK: periodic
 
