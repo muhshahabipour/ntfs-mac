@@ -20,7 +20,7 @@ A small, native macOS menu bar app that lets you **read and write NTFS disks** �
 
 *Screenshots are rendered with sample data (`NTFS --render-demo <dir>`).*
 
-**[Download](https://github.com/muhshahabipour/ntfs-mac/releases/latest)**
+**[Project page](https://muhshahabipour.github.io/ntfs-mac/)** · **[Download](https://github.com/muhshahabipour/ntfs-mac/releases/latest)**
 
 > Personal project. Not notarized, no warranty — keep backups of important disks.
 

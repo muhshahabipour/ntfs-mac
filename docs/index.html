@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NTFS for Mac</title>
+<meta name="description" content="A native macOS menu bar app to read and write NTFS disks, with safe Windows Fast Startup handling.">
+<link rel="icon" href="icon.png">
+<style>
+:root{--bg:#fafafa;--fg:#16181d;--muted:#5c6370;--card:#fff;--line:#e4e6eb;--accent:#0a84ff;--accent-fg:#fff;--code:#f0f1f4}
+@media (prefers-color-scheme:dark){:root{--bg:#121418;--fg:#e8eaee;--muted:#9aa1ad;--card:#1a1d23;--line:#2a2e36;--accent:#4da3ff;--accent-fg:#06182e;--code:#20242b}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.65 -apple-system,"Helvetica Neue",Vazirmatn,sans-serif}
+.wrap{max-width:860px;margin:0 auto;padding:0 20px}
+header{padding:64px 0 40px;text-align:center}
+header img{width:120px;height:120px;border-radius:26px;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+h1{font-size:2.4rem;margin:20px 0 8px;letter-spacing:-.02em}
+.lead{color:var(--muted);font-size:1.15rem;max-width:34em;margin:0 auto 28px}
+.fa{direction:rtl;color:var(--muted);margin:-14px 0 28px}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-fg);font-weight:600;padding:12px 24px;border-radius:10px;text-decoration:none;margin:4px}
+.btn.alt{background:transparent;color:var(--fg);border:1px solid var(--line)}
+.small{color:var(--muted);font-size:.88rem;margin-top:10px}
+h2{font-size:1.5rem;margin:48px 0 16px;letter-spacing:-.01em}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 6px;font-size:1.05rem}.card p{margin:0;color:var(--muted);font-size:.95rem}
+table{width:100%;border-collapse:collapse;background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+td,th{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);font-size:.95rem;vertical-align:top}
+tr:last-child td{border-bottom:0}th{color:var(--muted);font-weight:600}
+code{background:var(--code);border-radius:5px;padding:1px 6px;font:.88em ui-monospace,Menlo,monospace}
+pre{background:var(--code);border:1px solid var(--line);border-radius:12px;padding:16px;overflow-x:auto;font:.88rem/1.5 ui-monospace,Menlo,monospace}
+.shot{width:100%;border-radius:12px;border:1px solid var(--line);box-shadow:0 8px 30px rgba(0,0,0,.18);margin-top:8px}
+.shot.light{display:block}.shot.dark{display:none}
+@media (prefers-color-scheme:dark){.shot.light{display:none}.shot.dark{display:block}}
+ol,ul{padding-left:1.3em}li{margin:6px 0}
+footer{border-top:1px solid var(--line);margin-top:56px;padding:24px 0 48px;color:var(--muted);font-size:.9rem;text-align:center}
+a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <img src="icon.png" alt="NTFS for Mac app icon">
+  <h1>NTFS for Mac</h1>
+  <p class="lead">Read and write NTFS disks from the menu bar. Calm, fast, and careful with disks that Windows left in a risky state.</p>
+  <p class="fa" lang="fa">خواندن و نوشتن روی دیسک‌های NTFS در مک، از نوار منو</p>
+  <a class="btn" href="https://github.com/muhshahabipour/ntfs-mac/releases/latest">Download for macOS</a>
+  <a class="btn alt" href="https://github.com/muhshahabipour/ntfs-mac">View on GitHub</a>
+  <p class="small">v0.1 · Apple Silicon · macOS 15+ · not notarized: the DMG includes a one-click helper</p>
+</header>
+
+<img class="shot light" src="images/screenshot-light.png" alt="Disk cards in light mode">
+<img class="shot dark" src="images/screenshot-dark.png" alt="Disk cards in dark mode">
+
+<h2>What makes it different</h2>
+<div class="grid">
+  <div class="card"><h3>Safe by default</h3><p>A disk Windows left hibernated (Fast Startup) or unclean stays read-only, with a plain explanation. Only a dirty disk offers Repair &amp; Connect.</p></div>
+  <div class="card"><h3>Mount, unmount, eject</h3><p>Three separate actions. An unmounted disk shows as “Not mounted” with a Mount button, even if you unmounted it from Finder.</p></div>
+  <div class="card"><h3>Never two writers</h3><p>The app never starts a second driver on a disk one of its own already serves, so a restart can't corrupt a volume.</p></div>
+  <div class="card"><h3>Careful erase</h3><p>Quick NTFS format in the main window, behind a typed confirmation. It refuses internal disks and non-NTFS partitions.</p></div>
+  <div class="card"><h3>English and Persian</h3><p>English by default, Persian on request, with Persian digits. Light, dark or automatic.</p></div>
+  <div class="card"><h3>Stays out of the way</h3><p>Menu bar app with notifications when a transfer finishes or a disk needs attention, and optional launch at login.</p></div>
+</div>
+
+<h2>Install</h2>
+<ol>
+  <li>Open the DMG and drag <b>NTFS.app</b> into Applications.</li>
+  <li>Run <b>“1 - Install prerequisites.command”</b> (needs <a href="https://brew.sh">Homebrew</a>), then enable the macFUSE extension in System Settings → General → Login Items &amp; Extensions → File System Extensions.</li>
+  <li>Run <b>“2 - Allow the app.command”</b>, then open NTFS from Applications.</li>
+  <li>Follow the <b>Get started</b> card: enable the helper service and turn on NTFS under Full Disk Access.</li>
+</ol>
+
+<h2>Using disks with Windows</h2>
+<p>macOS can only write safely when Windows shut the disk down cleanly. In Windows, turn off <b>Fast Startup</b> (Power Options → Choose what the power buttons do) and use <b>Shut down</b>, not Restart or Hibernate.</p>
+
+<h2>If something goes wrong</h2>
+<table>
+  <tr><th>Symptom</th><th>Fix</th></tr>
+  <tr><td>“macOS is blocking access”</td><td>Turn on <b>NTFS</b> (the app, not only the helper) in Full Disk Access, then replug.</td></tr>
+  <tr><td>Mount starts, then disappears</td><td>The macFUSE extension is off: enable it in File System Extensions.</td></tr>
+  <tr><td>“Windows is hibernated”</td><td>Shut Windows down fully (Shift + Shut down) and replug.</td></tr>
+  <tr><td>Helper “not enabled” or “unreachable”</td><td>Run <code>NTFS --reinstall-helper</code> once and approve it in Login Items if asked.</td></tr>
+</table>
+
+<h2>Performance</h2>
+<p>Measured on a USB 3 flash drive (raw read about 150 MB/s): around 65 MB/s read and 12–15 MB/s write through the FUSE path. Mount options made no meaningful difference, so the defaults are kept. A faster disk is the real fix.</p>
+
+<h2>Build from source</h2>
+<pre>swift test                     # 78 unit tests
+bash scripts/build-app.sh      # signed build/NTFS.app
+bash scripts/make-dmg.sh       # dist/NTFS-&lt;version&gt;.dmg</pre>
+<p>SwiftUI, Swift 6. A root helper daemon (SMAppService + XPC) runs <code>ntfs-3g</code> over macFUSE; all logic lives in a UI-free Swift package target, <code>NTFSCore</code>.</p>
+</div>
+<footer>
+  <a href="https://github.com/muhshahabipour/ntfs-mac">Source</a> ·
+  <a href="https://github.com/muhshahabipour/ntfs-mac/releases">Releases</a> ·
+  <a href="https://github.com/muhshahabipour/ntfs-mac/blob/main/LICENSE">License</a><br>
+  Built on <a href="https://macfuse.github.io">macFUSE</a> and <a href="https://github.com/tuxera/ntfs-3g">ntfs-3g</a>. A personal project: keep backups of important disks.
+</footer>
+</body>
+</html>
