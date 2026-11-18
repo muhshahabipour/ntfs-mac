@@ -12,8 +12,8 @@ struct PopoverView: View {
     let setup: [SetupItem]
     let actions: DiskActions
     var onSetupAction: (String) -> Void = { _ in }
-    @Binding var themeRaw: String
     @AppStorage("language") private var languageRaw = AppLanguage.english.rawValue
+    var onOpenSettings: () -> Void = {}
     var onQuit: () -> Void = {}
 
     var body: some View {
@@ -61,50 +61,12 @@ struct PopoverView: View {
         .frame(maxWidth: .infinity, minHeight: 130)
     }
 
-    @State private var showSettings = false
-
     private var footer: some View {
         VStack(spacing: 8) {
             Divider()
-            if showSettings {
-                HStack(spacing: 6) {
-                    Text(S.themeHeader).font(.system(size: 11)).foregroundStyle(.secondary)
-                    Spacer()
-                    ForEach(AppTheme.allCases) { theme in
-                        let selected = themeRaw == theme.rawValue
-                        Button { themeRaw = theme.rawValue } label: {
-                            Text(theme.label)
-                                .font(.system(size: 11, weight: selected ? .semibold : .regular))
-                                .padding(.horizontal, 10).padding(.vertical, 4)
-                                .foregroundStyle(selected ? Color.white : Color.primary)
-                                .background(Capsule().fill(selected ? Palette.blue : Color.primary.opacity(0.08)))
-                        }
-                        .buttonStyle(PressableStyle())
-                    }
-                }
-                HStack(spacing: 6) {
-                    Text(S.languageHeader).font(.system(size: 11)).foregroundStyle(.secondary)
-                    Spacer()
-                    ForEach(AppLanguage.allCases) { lang in
-                        let selected = languageRaw == lang.rawValue
-                        Button { languageRaw = lang.rawValue } label: {
-                            Text(lang.label)
-                                .font(.system(size: 11, weight: selected ? .semibold : .regular))
-                                .padding(.horizontal, 10).padding(.vertical, 4)
-                                .foregroundStyle(selected ? Color.white : Color.primary)
-                                .background(Capsule().fill(selected ? Palette.blue : Color.primary.opacity(0.08)))
-                        }
-                        .buttonStyle(PressableStyle())
-                    }
-                }
-            }
             HStack {
-                Button {
-                    showSettings.toggle()
-                } label: {
-                    Label(S.settings, systemImage: "gearshape")
-                }
-                .buttonStyle(.plain)
+                Button(action: onOpenSettings) { Label(S.settings, systemImage: "gearshape") }
+                    .buttonStyle(.plain)
                 Spacer()
                 Button(S.quit, action: onQuit).buttonStyle(.plain)
             }

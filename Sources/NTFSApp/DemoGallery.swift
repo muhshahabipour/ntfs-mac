@@ -20,7 +20,7 @@ struct DemoGallery: View {
     }
 
     private func demo(_ cards: [DiskCardModel]) -> some View {
-        PopoverView(cards: cards, setup: [], actions: DiskActions(), themeRaw: .constant("auto"))
+        PopoverView(cards: cards, setup: [], actions: DiskActions())
             .background(RoundedRectangle(cornerRadius: 18, style: .continuous).fill(Color(nsColor: .windowBackgroundColor)))
             .overlay(RoundedRectangle(cornerRadius: 18, style: .continuous).strokeBorder(Color.primary.opacity(0.1)))
     }

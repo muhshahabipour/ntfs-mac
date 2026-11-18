@@ -1,29 +1,100 @@
 import SwiftUI
+import AppKit
 
 struct NTFSMenuApp: App {
-    @State private var model = DiskListViewModel()
-    @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    var body: some Scene { Settings { EmptyView() } }
+}
 
-    init() {
-        // The popover content is created lazily, so start watching disks at launch.
-        let m = DiskListViewModel()
-        _model = State(initialValue: m)
-        m.start()
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var controller: StatusController?
+    func applicationDidFinishLaunching(_ notification: Notification) { controller = StatusController() }
+}
+
+/// The menu bar item and its popover. An NSPopover (instead of MenuBarExtra's window) resizes
+/// cleanly when the content grows or shrinks.
+@MainActor
+final class StatusController: NSObject {
+    private let model = DiskListViewModel()
+    private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+    private let popover = NSPopover()
+    private var settingsWindow: NSWindow?
+
+    override init() {
+        super.init()
+        popover.behavior = .transient
+        popover.animates = true
+        let hosting = NSHostingController(rootView: PopoverRoot(model: model, onOpenSettings: { [weak self] in self?.openSettings() }, onQuit: { NSApplication.shared.terminate(nil) }))
+        hosting.sizingOptions = [.preferredContentSize]
+        popover.contentViewController = hosting
+
+        statusItem.button?.target = self
+        statusItem.button?.action = #selector(toggle)
+        trackIcon()
+        applyTheme()
+        NotificationCenter.default.addObserver(forName: UserDefaults.didChangeNotification, object: nil, queue: .main) { [weak self] _ in
+            MainActor.assumeIsolated { self?.applyTheme() }
+        }
+        model.start()
     }
 
-    var body: some Scene {
-        MenuBarExtra {
-            PopoverView(
-                cards: model.cardModels,
-                setup: model.setupItems,
-                actions: DiskActions(open: model.open, eject: model.eject, repair: model.repair, retry: model.retry),
-                onSetupAction: model.handleSetupAction,
-                themeRaw: $themeRaw,
-                onQuit: { NSApplication.shared.terminate(nil) })
-            .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
-        } label: {
-            Image(systemName: model.needsAttention ? "externaldrive.badge.exclamationmark" : "externaldrive")
+    private func applyTheme() {
+        let raw = UserDefaults.standard.string(forKey: "theme") ?? AppTheme.auto.rawValue
+        switch AppTheme(rawValue: raw) ?? .auto {
+        case .auto: popover.appearance = nil
+        case .light: popover.appearance = NSAppearance(named: .aqua)
+        case .dark: popover.appearance = NSAppearance(named: .darkAqua)
         }
-        .menuBarExtraStyle(.window)
+    }
+
+    private func trackIcon() {
+        withObservationTracking {
+            let name = model.needsAttention ? "externaldrive.badge.exclamationmark" : "externaldrive"
+            statusItem.button?.image = NSImage(systemSymbolName: name, accessibilityDescription: "NTFS")
+        } onChange: { [weak self] in
+            DispatchQueue.main.async { MainActor.assumeIsolated { self?.trackIcon() } }
+        }
+    }
+
+    private func openSettings() {
+        popover.performClose(nil)
+        if settingsWindow == nil {
+            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
+            w.title = S.settings
+            w.styleMask = [.titled, .closable]
+            w.isReleasedWhenClosed = false
+            w.center()
+            settingsWindow = w
+        }
+        settingsWindow?.title = S.settings
+        NSApp.activate(ignoringOtherApps: true)
+        settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    @objc private func toggle() {
+        guard let button = statusItem.button else { return }
+        if popover.isShown { popover.performClose(nil); return }
+        NSApp.activate(ignoringOtherApps: true)
+        popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
+        popover.contentViewController?.view.window?.makeKey()
+    }
+}
+
+struct PopoverRoot: View {
+    let model: DiskListViewModel
+    var onOpenSettings: () -> Void
+    var onQuit: () -> Void
+    @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
+
+    var body: some View {
+        PopoverView(
+            cards: model.cardModels,
+            setup: model.setupItems,
+            actions: DiskActions(open: model.open, eject: model.eject, repair: model.repair, retry: model.retry),
+            onSetupAction: model.handleSetupAction,
+            onOpenSettings: onOpenSettings,
+            onQuit: onQuit)
+        .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
     }
 }
