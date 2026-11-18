@@ -32,7 +32,10 @@ struct PopoverView: View {
         .padding(14)
         .frame(width: 310)
         .environment(\.layoutDirection, (AppLanguage(rawValue: languageRaw) ?? .english).layoutDirection)
-        .animation(.easeOut(duration: 0.25), value: cards)
+        .fixedSize(horizontal: false, vertical: true)
+        // No implicit layout animation: the menu bar window resizes in one step, so animating the
+        // content inside it makes it lag behind the frame and look glitchy.
+        .transaction { $0.animation = nil }
     }
 
     private func setupRow(_ item: SetupItem) -> some View {
@@ -79,7 +82,6 @@ struct PopoverView: View {
                         .buttonStyle(PressableStyle())
                     }
                 }
-                .transition(.opacity)
                 HStack(spacing: 6) {
                     Text(S.languageHeader).font(.system(size: 11)).foregroundStyle(.secondary)
                     Spacer()
@@ -98,7 +100,7 @@ struct PopoverView: View {
             }
             HStack {
                 Button {
-                    withAnimation(.easeOut(duration: 0.2)) { showSettings.toggle() }
+                    showSettings.toggle()
                 } label: {
                     Label(S.settings, systemImage: "gearshape")
                 }

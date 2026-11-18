@@ -1,4 +1,5 @@
 import Foundation
+import os
 
 public enum MountError: Error, Equatable, Sendable, Codable {
     case invalidDevice
@@ -55,7 +56,10 @@ public actor MountEngine {
 
     public func probe(_ disk: NTFSDisk) async throws -> VolumeHealth {
         guard isValidDiskDevice(disk.deviceNode) else { throw MountError.invalidDevice }
-        return classifyHealth(probeStatus: try await exec(tools.probe, ["--readwrite", disk.deviceNode]).status)
+        let r = try await exec(tools.probe, ["--readwrite", disk.deviceNode])
+        Logger(subsystem: "com.local.ntfs", category: "probe")
+            .notice("probe \(disk.deviceNode, privacy: .public) status=\(r.status) stderr=\(r.stderr, privacy: .public) stdout=\(r.stdout, privacy: .public)")
+        return classifyHealth(probeStatus: r.status)
     }
 
     /// Mounts read/write only a clean volume. Returns the mount point.

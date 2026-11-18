@@ -17,6 +17,7 @@ mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Library/LaunchDaemons" "$APP/Conte
 cp "$BIN/NTFSApp"    "$APP/Contents/MacOS/NTFS"
 cp "$BIN/NTFSHelper" "$APP/Contents/MacOS/NTFSHelper"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
+cp Resources/Icon/AppIcon.icns "$APP/Contents/Resources/AppIcon.icns"
 cp Resources/com.local.ntfs.helper.plist "$APP/Contents/Library/LaunchDaemons/com.local.ntfs.helper.plist"
 
 codesign --force --options runtime -s "$IDENTITY" -i com.local.ntfs.helper "$APP/Contents/MacOS/NTFSHelper"
