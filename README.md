@@ -2,8 +2,8 @@
 
 # NTFS for Mac
 
-[![Release](https://img.shields.io/badge/release-v0.1-blue)](https://github.com/muhshahabipour/ntfs-mac/releases/latest)
-[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![Release](https://img.shields.io/github/v/release/muhshahabipour/ntfs-mac)](https://github.com/muhshahabipour/ntfs-mac/releases/latest)
+[![License](https://img.shields.io/github/license/muhshahabipour/ntfs-mac)](LICENSE)
 ![macOS 15+](https://img.shields.io/badge/macOS-15%2B-blue)
 ![Apple silicon](https://img.shields.io/badge/Apple%20silicon-arm64-lightgrey)
 ![Swift 6](https://img.shields.io/badge/Swift-6-orange)
@@ -20,7 +20,7 @@ A small, native macOS menu bar app that lets you **read and write NTFS disks** �
 
 *Screenshots are rendered with sample data (`NTFS --render-demo <dir>`).*
 
-**[Download](https://github.com/muhshahabipour/ntfs-mac/releases/latest)**
+**[Project page](https://muhshahabipour.github.io/ntfs-mac/)** · **[Download](https://github.com/muhshahabipour/ntfs-mac/releases/latest)**
 
 > Personal project. Not notarized, no warranty — keep backups of important disks.
 
