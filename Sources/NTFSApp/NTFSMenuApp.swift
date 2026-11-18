@@ -26,7 +26,7 @@ final class StatusController: NSObject {
         super.init()
         popover.behavior = .transient
         popover.animates = true
-        let hosting = NSHostingController(rootView: PopoverRoot(model: model, onOpenSettings: { [weak self] in self?.openMainWindow(.settings) }, onQuit: { NSApplication.shared.terminate(nil) }))
+        let hosting = NSHostingController(rootView: PopoverRoot(model: model, onOpenApp: { [weak self] in self?.openMainWindow(.disks) }, onQuit: { NSApplication.shared.terminate(nil) }))
         hosting.sizingOptions = [.preferredContentSize]
         popover.contentViewController = hosting
 
@@ -86,7 +86,7 @@ final class StatusController: NSObject {
 
 struct PopoverRoot: View {
     let model: DiskListViewModel
-    var onOpenSettings: () -> Void
+    var onOpenApp: () -> Void
     var onQuit: () -> Void
     @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
 
@@ -96,7 +96,7 @@ struct PopoverRoot: View {
             setup: model.setupItems,
             actions: DiskActions(open: model.open, eject: model.eject, mount: model.mount, unmount: model.unmount, repair: model.repair, retry: model.retry),
             onSetupAction: model.handleSetupAction,
-            onOpenSettings: onOpenSettings,
+            onOpenApp: onOpenApp,
             onQuit: onQuit)
         .preferredColorScheme(AppTheme(rawValue: themeRaw)?.colorScheme)
     }

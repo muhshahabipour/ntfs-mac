@@ -36,6 +36,7 @@ enum S {
     static var permissionsHeader: String { tr("Setup", "راه‌اندازی") }
     static var helperRowTitle: String { tr("Helper service", "سرویس کمکی") }
     static var diskAccessRowTitle: String { tr("Full Disk Access", "دسترسی کامل به دیسک") }
+    static var openApp: String { tr("Open App", "باز کردن برنامه") }
     static var retry: String { tr("Try Again", "تلاش دوباره") }
     static var enable: String { tr("Enable", "فعال‌سازی") }
 

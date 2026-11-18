@@ -13,7 +13,7 @@ struct PopoverView: View {
     let actions: DiskActions
     var onSetupAction: (String) -> Void = { _ in }
     @AppStorage("language") private var languageRaw = AppLanguage.english.rawValue
-    var onOpenSettings: () -> Void = {}
+    var onOpenApp: () -> Void = {}
     var onQuit: () -> Void = {}
 
     var body: some View {
@@ -65,7 +65,7 @@ struct PopoverView: View {
         VStack(spacing: 8) {
             Divider()
             HStack {
-                Button(action: onOpenSettings) { Label(S.settings, systemImage: "gearshape") }
+                Button(action: onOpenApp) { Label(S.openApp, systemImage: "macwindow") }
                     .buttonStyle(.plain)
                 Spacer()
                 Text(S.version).font(.system(size: 10)).foregroundStyle(.tertiary)
