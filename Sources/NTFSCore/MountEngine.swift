@@ -73,6 +73,13 @@ public actor MountEngine {
         let health = try await probe(disk)
         guard health.canMountReadWrite else { throw MountError.notClean(health) }
 
+        // Never run a second ntfs-3g on a device that one of ours already serves (e.g. after the app restarted):
+        // two writers on one NTFS volume corrupt it. Adopt the existing mount instead.
+        if let existing = try await macFUSEMountPoint(of: disk.deviceNode) {
+            mounted[disk.id] = existing
+            return existing
+        }
+
         let mp = mountPoint(for: disk, taken: Set(mounted.values))
         do { try files.makeDirectory(mp) } catch { throw MountError.failed("\(error)") }
         mounted[disk.id] = mp
@@ -94,6 +101,15 @@ public actor MountEngine {
         }
         forget(disk.id)
         throw MountError.extensionNotEnabled
+    }
+
+    private func macFUSEMountPoint(of device: String) async throws -> String? {
+        guard let table = try? await exec(tools.mount, []) else { return nil }
+        for line in table.stdout.split(separator: "\n") where line.hasPrefix("\(device) on ") && line.contains("macfuse") {
+            let rest = line.dropFirst(device.count + 4)
+            if let end = rest.range(of: " (", options: .backwards) { return String(rest[..<end.lowerBound]) }
+        }
+        return nil
     }
 
     /// Unmounts macOS's own read-only mount so ntfs-3g can take the device.

@@ -59,6 +59,7 @@ private func mountTable(_ mp: String) -> ProcessResult {
     @Test func mountsCleanDiskReadWrite() async throws {
         let runner = FakeProcessRunner(results: [
             ProcessResult(status: 0),                 // probe
+            ProcessResult(status: 0),                 // existing mount table (none)
             ProcessResult(status: 0),                 // ntfs-3g
             mountTable("/Volumes/Backup"),            // mount table
         ])
@@ -66,7 +67,7 @@ private func mountTable(_ mp: String) -> ProcessResult {
         let mp = try await engine(runner, files: files).mountReadWrite(disk)
         #expect(mp == "/Volumes/Backup")
         #expect(files.made == ["/Volumes/Backup"])
-        #expect(runner.calls[1].arguments == ["/dev/disk4s1", "/Volumes/Backup", "-o", "local,rw,volname=Backup"])
+        #expect(runner.calls[2].arguments == ["/dev/disk4s1", "/Volumes/Backup", "-o", "local,rw,volname=Backup"])
     }
 
     @Test func refusesDirtyDiskAndNeverCallsNtfs3g() async {
@@ -122,8 +123,18 @@ private func mountTable(_ mp: String) -> ProcessResult {
         #expect(ntfsLabel(String(repeating: "x", count: 50)).count == 32)
     }
 
+    @Test func anExistingMacFUSEMountIsAdoptedNotMountedTwice() async throws {
+        let runner = FakeProcessRunner(results: [
+            ProcessResult(status: 0),                                  // probe
+            mountTable("/Volumes/My Disk"),                            // already served by ntfs-3g
+        ])
+        let mp = try await engine(runner).mountReadWrite(disk)
+        #expect(mp == "/Volumes/My Disk")
+        #expect(runner.calls.count == 2)   // no ntfs-3g launched
+    }
+
     @Test func missingExtensionIsReportedWhenMountNeverAppears() async {
-        let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0)],
+        let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0)],
                                        fallback: ProcessResult(status: 0, stdout: "/dev/disk3s1 on / (apfs)\n"))
         let files = FakeFileOps()
         await #expect(throws: MountError.extensionNotEnabled) { try await engine(runner, files: files).mountReadWrite(disk) }
@@ -131,7 +142,7 @@ private func mountTable(_ mp: String) -> ProcessResult {
     }
 
     @Test func ntfs3gFailureSurfacesStderrAndCleansUp() async {
-        let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 1, stderr: "boom")])
+        let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 1, stderr: "boom")])
         let files = FakeFileOps()
         await #expect(throws: MountError.failed("boom")) { try await engine(runner, files: files).mountReadWrite(disk) }
         #expect(files.removed == ["/Volumes/Backup"])
@@ -153,8 +164,8 @@ private func mountTable(_ mp: String) -> ProcessResult {
     @Test func twoDisksWithSameLabelGetDistinctMountPoints() async throws {
         let other = NTFSDisk(id: "disk5s1", label: "Backup", sizeBytes: 1, deviceNode: "/dev/disk5s1")
         let runner = FakeProcessRunner(results: [
-            ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup"),
-            ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup 2"),
+            ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup"),
+            ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup 2"),
         ])
         let e = engine(runner)
         #expect(try await e.mountReadWrite(disk) == "/Volumes/Backup")
@@ -163,7 +174,7 @@ private func mountTable(_ mp: String) -> ProcessResult {
 
     @Test func unmountReportsBusyHolders() async throws {
         let runner = FakeProcessRunner(results: [
-            ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup"),     // mount
+            ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup"),     // mount
             ProcessResult(status: 1, stderr: "Volume Backup failed to unmount: dissented by PID 123 (Finder)"),
             ProcessResult(status: 0, stdout: "cFinder\ncPreview\ncFinder\n"),                      // lsof -Fc
         ])
@@ -174,7 +185,7 @@ private func mountTable(_ mp: String) -> ProcessResult {
 
     @Test func unmountSuccessRemovesMountPoint() async throws {
         let runner = FakeProcessRunner(results: [
-            ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup"),
+            ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup"),
             ProcessResult(status: 0),
         ])
         let files = FakeFileOps()
@@ -186,12 +197,12 @@ private func mountTable(_ mp: String) -> ProcessResult {
     }
 
     @Test func disappearedDiskIsForgottenAndItsMountPointRemoved() async throws {
-        let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup")])
+        let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0), mountTable("/Volumes/Backup")])
         let files = FakeFileOps()
         let e = engine(runner, files: files)
         _ = try await e.mountReadWrite(disk)
         await e.diskDisappeared(id: "disk4s1")
         #expect(files.removed == ["/Volumes/Backup"])
-        #expect(runner.calls.count == 3)   // no commands run for a vanished disk
+        #expect(runner.calls.count == 4)   // no commands run for a vanished disk
     }
 }

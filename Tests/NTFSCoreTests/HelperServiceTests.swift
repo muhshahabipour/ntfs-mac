@@ -29,7 +29,7 @@ import Testing
 
     @Test func mountReturnsMountPoint() async {
         let runner = FakeProcessRunner(results: [
-            ProcessResult(status: 0), ProcessResult(status: 0),
+            ProcessResult(status: 0), ProcessResult(status: 0), ProcessResult(status: 0),
             ProcessResult(status: 0, stdout: "/dev/disk4s1 on /Volumes/Backup (macfuse, local)\n"),
         ])
         let r = await service(runner).handle(.mount(device: "/dev/disk4s1", label: "Backup"))
