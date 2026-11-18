@@ -40,4 +40,10 @@ import Testing
         #expect(usedFraction(used: 0, total: 2 * tb) == 0)
         #expect(usedFraction(used: 2 * tb, total: 2 * tb) == 1)
     }
+
+    @Test func deliberatelyUnmountedDiskIsNotAnError() {
+        #expect(cardState(health: .unknown, mounted: false, bytesPerSecond: 0, used: 0, total: 100, userUnmounted: true) == .unmounted)
+        // Mounted wins over the flag.
+        #expect(cardState(health: .clean, mounted: true, bytesPerSecond: 0, used: 0, total: 100, userUnmounted: true) == .ready(usedFraction: 0))
+    }
 }

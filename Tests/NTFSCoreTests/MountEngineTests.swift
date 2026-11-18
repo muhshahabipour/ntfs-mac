@@ -82,6 +82,12 @@ private func mountTable(_ mp: String) -> ProcessResult {
         #expect(runner.calls.count == 1)
     }
 
+    @Test func unmountWorksByDeviceWhenMountPointIsUnknown() async throws {
+        let runner = FakeProcessRunner()
+        try await engine(runner).unmount(disk)
+        #expect(runner.calls == [.init(executable: "/usr/sbin/diskutil", arguments: ["unmount", "/dev/disk4s1"])])
+    }
+
     @Test func missingExtensionIsReportedWhenMountNeverAppears() async {
         let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0)],
                                        fallback: ProcessResult(status: 0, stdout: "/dev/disk3s1 on / (apfs)\n"))

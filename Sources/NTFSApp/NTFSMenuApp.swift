@@ -91,7 +91,7 @@ struct PopoverRoot: View {
         PopoverView(
             cards: model.cardModels,
             setup: model.setupItems,
-            actions: DiskActions(open: model.open, eject: model.eject, repair: model.repair, retry: model.retry),
+            actions: DiskActions(open: model.open, eject: model.eject, mount: model.mount, unmount: model.unmount, repair: model.repair, retry: model.retry),
             onSetupAction: model.handleSetupAction,
             onOpenSettings: onOpenSettings,
             onQuit: onQuit)

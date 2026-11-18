@@ -12,6 +12,8 @@ struct DiskCardModel: Identifiable, Equatable {
 struct DiskActions {
     var open: (String) -> Void = { _ in }
     var eject: (String) -> Void = { _ in }
+    var mount: (String) -> Void = { _ in }
+    var unmount: (String) -> Void = { _ in }
     var repair: (String) -> Void = { _ in }
     var retry: (String) -> Void = { _ in }
 }
@@ -57,6 +59,7 @@ struct DiskCardView: View {
     private var ringTint: Color {
         if case .needsAttention = model.state { return Palette.orange }
         if case .failed = model.state { return Palette.red }
+        if case .unmounted = model.state { return Color.secondary }
         return Palette.blue
     }
 
@@ -65,6 +68,8 @@ struct DiskCardView: View {
         case .copying(let bps, _): "\(S.copying) · \(S.speed(bps))"
         case .mounting: S.connecting
         case .ejecting: S.ejecting
+        case .unmounting: S.unmounting
+        case .unmounted: S.size(model.totalBytes)
         default: S.usedOfTotal(used: model.usedBytes, total: model.totalBytes)
         }
     }
@@ -73,7 +78,8 @@ struct DiskCardView: View {
         switch model.state {
         case .ready, .copying: pill(S.readWrite, Palette.green)
         case .needsAttention: pill(S.readOnly, Palette.orange)
-        case .mounting, .ejecting: ProgressView().controlSize(.small)
+        case .unmounted: pill(S.notMounted, Color.secondary)
+        case .mounting, .ejecting, .unmounting: ProgressView().controlSize(.small)
         case .failed: EmptyView()
         }
     }
@@ -127,7 +133,13 @@ struct DiskCardView: View {
         case .ready, .copying:
             HStack(spacing: 8) {
                 button(S.open, icon: "folder", style: .secondary) { actions.open(model.id) }
-                button(S.eject, icon: "eject.fill", style: .primary) { actions.eject(model.id) }
+                button(S.unmount, icon: "arrow.down.to.line", style: .secondary) { actions.unmount(model.id) }
+                iconButton("eject.fill", help: S.eject) { actions.eject(model.id) }
+            }
+        case .unmounted:
+            HStack(spacing: 8) {
+                button(S.mount, icon: "externaldrive.badge.plus", style: .primary) { actions.mount(model.id) }
+                button(S.eject, icon: "eject.fill", style: .secondary) { actions.eject(model.id) }
             }
         case .needsAttention(let health, _):
             if health.isRepairable {
@@ -140,9 +152,22 @@ struct DiskCardView: View {
                 button(S.retry, icon: "arrow.clockwise", style: .primary) { actions.retry(model.id) }
                 button(S.eject, icon: "eject.fill", style: .secondary) { actions.eject(model.id) }
             }
-        case .mounting, .ejecting:
+        case .mounting, .ejecting, .unmounting:
             EmptyView()
         }
+    }
+
+    private func iconButton(_ icon: String, help: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Image(systemName: icon).font(.system(size: 12, weight: .semibold))
+                .frame(width: 38, height: 30)
+                .foregroundStyle(Color.white)
+                .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Palette.blue))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(PressableStyle())
+        .help(help)
+        .accessibilityLabel(Text(help))
     }
 
     private enum Style { case primary, secondary }

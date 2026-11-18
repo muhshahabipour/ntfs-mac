@@ -111,7 +111,9 @@ public actor MountEngine {
     }
 
     public func unmount(_ disk: NTFSDisk) async throws {
-        guard let mp = mounted[disk.id] else { return }
+        guard isValidDiskDevice(disk.deviceNode) else { throw MountError.invalidDevice }
+        // After a helper restart we no longer know the mount point; the device node works as well.
+        let mp = mounted[disk.id] ?? disk.deviceNode
         let r = try await exec(tools.diskutil, ["unmount", mp])
         if r.status != 0 {
             let holders = Self.holders(from: (try? await exec(tools.lsof, ["-Fc", "+D", mp]))?.stdout ?? "")

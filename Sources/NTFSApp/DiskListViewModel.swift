@@ -16,8 +16,9 @@ final class DiskListViewModel {
         var isActive = false
         var busy: Busy?
         var errorText: String?
+        var userUnmounted = false
     }
-    enum Busy { case connecting, ejecting }
+    enum Busy { case connecting, ejecting, unmounting }
 
     private(set) var cards: [Card] = []
     private(set) var problems: [Problem] = []
@@ -77,11 +78,12 @@ final class DiskListViewModel {
 
     private func state(of c: Card) -> CardState {
         if c.busy == .ejecting { return .ejecting }
+        if c.busy == .unmounting { return .unmounting }
         if c.busy == .connecting { return .mounting }
         if let e = c.errorText { return .failed(e) }
         let speed = c.isActive ? max(c.bytesPerSecond, activityThresholdBytesPerSecond) : 0
         return cardState(health: c.health, mounted: c.mountPoint != nil, bytesPerSecond: speed,
-                         used: c.used, total: c.disk.sizeBytes)
+                         used: c.used, total: c.disk.sizeBytes, userUnmounted: c.userUnmounted)
     }
 
     // MARK: events
@@ -114,9 +116,10 @@ final class DiskListViewModel {
     /// release macOS's read-only mount → probe → mount read/write when clean.
     private func connect(_ id: String) async {
         guard let disk = cards.first(where: { $0.id == id })?.disk else { return }
-        update(id) { $0.busy = .connecting; $0.errorText = nil }
+        update(id) { $0.busy = .connecting; $0.errorText = nil; $0.userUnmounted = false }
         do {
-            if disk.nativelyMounted { _ = try? await call(.releaseNative(device: disk.deviceNode)) }
+            // macOS may have (re)mounted its own read-only copy, so always try to release it first.
+            _ = try? await call(.releaseNative(device: disk.deviceNode))
             guard case .health(var health) = try await call(.probe(device: disk.deviceNode)) else { return }
             if health == .inUse {
                 // Another driver (macOS's own, or Paragon's) grabbed the disk before us: release it and look again.
@@ -141,6 +144,23 @@ final class DiskListViewModel {
 
     // MARK: actions
 
+    func mount(_ id: String) { Task { await connect(id) } }
+
+    func unmount(_ id: String) {
+        guard let disk = cards.first(where: { $0.id == id })?.disk else { return }
+        update(id) { $0.busy = .unmounting; $0.errorText = nil }
+        Task {
+            do {
+                _ = try await call(.unmount(device: disk.deviceNode))
+                update(id) { $0.mountPoint = nil; $0.userUnmounted = true; $0.isActive = false; $0.bytesPerSecond = 0 }
+                smoothers[id] = nil; detectors[id] = nil
+            } catch {
+                update(id) { $0.errorText = S.message(for: error) }
+            }
+            update(id) { $0.busy = nil }
+        }
+    }
+
     func retry(_ id: String) { Task { await connect(id) } }
 
     func repair(_ id: String) {
@@ -163,7 +183,7 @@ final class DiskListViewModel {
         update(id) { $0.busy = .ejecting; $0.errorText = nil }
         Task {
             do {
-                _ = try await call(.unmount(device: disk.deviceNode))
+                if cards.first(where: { $0.id == id })?.mountPoint != nil { _ = try await call(.unmount(device: disk.deviceNode)) }
                 await Self.ejectPhysical(wholeDisk(of: disk.id))
                 cards.removeAll { $0.id == id }
             } catch {
@@ -207,11 +227,26 @@ final class DiskListViewModel {
         update(id) { $0.used = UInt64(max(0, total - free)) }
     }
 
+    private static func isMountPoint(_ path: String) -> Bool {
+        var info = statfs()
+        guard statfs(path, &info) == 0 else { return false }
+        let mountedOn = withUnsafePointer(to: &info.f_mntonname) {
+            $0.withMemoryRebound(to: CChar.self, capacity: Int(MAXPATHLEN)) { String(cString: $0) }
+        }
+        return mountedOn == path
+    }
+
     private var tickCount = 0
     private func tick() {
         tickCount += 1
         if tickCount % 5 == 0 { refreshEnvironment() }
         let now = Date()
+        // A volume unmounted from outside the app (Finder, Terminal) must not keep showing as connected.
+        for card in cards where card.busy == nil {
+            if let mp = card.mountPoint, !Self.isMountPoint(mp) {
+                update(card.id) { $0.mountPoint = nil; $0.userUnmounted = true; $0.isActive = false; $0.bytesPerSecond = 0 }
+            }
+        }
         for card in cards where card.mountPoint != nil {
             refreshUsage(card.id)
             guard let total = counters.totalBytes(for: wholeDisk(of: card.id)) else { continue }

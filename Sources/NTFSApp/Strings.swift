@@ -11,6 +11,10 @@ enum S {
     static var open: String { tr("Open", "باز کردن") }
     static var eject: String { tr("Eject Safely", "جدا کردن امن") }
     static var repair: String { tr("Repair & Connect", "ترمیم و اتصال") }
+    static var mount: String { tr("Mount", "اتصال") }
+    static var unmount: String { tr("Unmount", "جدا کردن اتصال") }
+    static var unmounting: String { tr("Unmounting…", "در حال قطع اتصال…") }
+    static var notMounted: String { tr("Not mounted", "متصل نیست") }
     static var retry: String { tr("Try Again", "تلاش دوباره") }
     static var enable: String { tr("Enable", "فعال‌سازی") }
 

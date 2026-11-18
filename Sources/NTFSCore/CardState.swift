@@ -6,6 +6,9 @@ public enum CardState: Equatable, Sendable {
     case needsAttention(VolumeHealth, usedFraction: Double)
     case copying(bytesPerSecond: Double, usedFraction: Double)
     case ejecting
+    case unmounting
+    /// Attached but deliberately not mounted (user unmounted it, or it was unmounted elsewhere).
+    case unmounted
     case failed(String)
 }
 
@@ -16,12 +19,13 @@ public func usedFraction(used: UInt64, total: UInt64) -> Double {
 }
 
 public func cardState(health: VolumeHealth, mounted: Bool, bytesPerSecond: Double,
-                      used: UInt64, total: UInt64) -> CardState {
+                      used: UInt64, total: UInt64, userUnmounted: Bool = false) -> CardState {
     let fraction = usedFraction(used: used, total: total)
     if mounted {
         return bytesPerSecond >= activityThresholdBytesPerSecond
             ? .copying(bytesPerSecond: bytesPerSecond, usedFraction: fraction)
             : .ready(usedFraction: fraction)
     }
+    if userUnmounted { return .unmounted }
     return health.canMountReadWrite ? .mounting : .needsAttention(health, usedFraction: fraction)
 }
