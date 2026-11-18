@@ -2,6 +2,7 @@ import SwiftUI
 
 /// Content of the standalone Settings window.
 struct SettingsView: View {
+    var onOpenDiskTools: () -> Void = {}
     @AppStorage("theme") private var themeRaw = AppTheme.auto.rawValue
     @AppStorage("language") private var languageRaw = AppLanguage.english.rawValue
 
@@ -20,6 +21,9 @@ struct SettingsView: View {
             row(title: S.languageHeader) {
                 ForEach(AppLanguage.allCases) { l in chip(l.label, selected: languageRaw == l.rawValue) { languageRaw = l.rawValue } }
             }
+            Divider()
+            Button(action: onOpenDiskTools) { Label(S.diskTools, systemImage: "externaldrive.badge.minus") }
+                .buttonStyle(.link).font(.system(size: 12))
         }
         .padding(22)
         .frame(width: 340)

@@ -31,3 +31,14 @@ public func mountPoint(for disk: NTFSDisk, taken: Set<String>) -> String {
 public func ntfs3gArguments(device: String, mountPoint: String, volname: String) -> [String] {
     [device, mountPoint, "-o", "local,rw,volname=\(volname)"]
 }
+
+/// NTFS volume labels: at most 32 characters, no control characters; empty becomes "NTFS".
+public func ntfsLabel(_ raw: String) -> String {
+    let cleaned = raw.unicodeScalars.filter { !$0.properties.generalCategory.isControl }
+    let text = String(String.UnicodeScalarView(cleaned)).trimmingCharacters(in: .whitespaces)
+    return text.isEmpty ? "NTFS" : String(text.prefix(32))
+}
+
+private extension Unicode.GeneralCategory {
+    var isControl: Bool { self == .control || self == .format || self == .lineSeparator || self == .paragraphSeparator }
+}

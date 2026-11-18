@@ -69,6 +69,7 @@ struct DiskCardView: View {
         case .mounting: S.connecting
         case .ejecting: S.ejecting
         case .unmounting: S.unmounting
+        case .erasing: S.erasing
         case .unmounted: S.size(model.totalBytes)
         default: S.usedOfTotal(used: model.usedBytes, total: model.totalBytes)
         }
@@ -79,7 +80,7 @@ struct DiskCardView: View {
         case .ready, .copying: pill(S.readWrite, Palette.green)
         case .needsAttention: pill(S.readOnly, Palette.orange)
         case .unmounted: pill(S.notMounted, Color.secondary)
-        case .mounting, .ejecting, .unmounting: ProgressView().controlSize(.small)
+        case .mounting, .ejecting, .unmounting, .erasing: ProgressView().controlSize(.small)
         case .failed: EmptyView()
         }
     }
@@ -152,7 +153,7 @@ struct DiskCardView: View {
                 button(S.retry, icon: "arrow.clockwise", style: .primary) { actions.retry(model.id) }
                 button(S.eject, icon: "eject.fill", style: .secondary) { actions.eject(model.id) }
             }
-        case .mounting, .ejecting, .unmounting:
+        case .mounting, .ejecting, .unmounting, .erasing:
             EmptyView()
         }
     }

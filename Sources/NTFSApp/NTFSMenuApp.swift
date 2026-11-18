@@ -20,6 +20,7 @@ final class StatusController: NSObject {
     private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
     private let popover = NSPopover()
     private var settingsWindow: NSWindow?
+    private var toolsWindow: NSWindow?
 
     override init() {
         super.init()
@@ -60,7 +61,7 @@ final class StatusController: NSObject {
     private func openSettings() {
         popover.performClose(nil)
         if settingsWindow == nil {
-            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView()))
+            let w = NSWindow(contentViewController: NSHostingController(rootView: SettingsView(onOpenDiskTools: { [weak self] in self?.openDiskTools() })))
             w.title = S.settings
             w.styleMask = [.titled, .closable]
             w.isReleasedWhenClosed = false
@@ -70,6 +71,19 @@ final class StatusController: NSObject {
         settingsWindow?.title = S.settings
         NSApp.activate(ignoringOtherApps: true)
         settingsWindow?.makeKeyAndOrderFront(nil)
+    }
+
+    private func openDiskTools() {
+        if toolsWindow == nil {
+            let w = NSWindow(contentViewController: NSHostingController(rootView: DiskToolsView(model: model)))
+            w.styleMask = [.titled, .closable]
+            w.isReleasedWhenClosed = false
+            w.center()
+            toolsWindow = w
+        }
+        toolsWindow?.title = S.eraseTitle
+        NSApp.activate(ignoringOtherApps: true)
+        toolsWindow?.makeKeyAndOrderFront(nil)
     }
 
     @objc private func toggle() {

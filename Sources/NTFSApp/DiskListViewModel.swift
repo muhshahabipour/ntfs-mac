@@ -18,7 +18,7 @@ final class DiskListViewModel {
         var errorText: String?
         var userUnmounted = false
     }
-    enum Busy { case connecting, ejecting, unmounting }
+    enum Busy { case connecting, ejecting, unmounting, erasing }
 
     private(set) var cards: [Card] = []
     private(set) var problems: [Problem] = []
@@ -79,6 +79,7 @@ final class DiskListViewModel {
     private func state(of c: Card) -> CardState {
         if c.busy == .ejecting { return .ejecting }
         if c.busy == .unmounting { return .unmounting }
+        if c.busy == .erasing { return .erasing }
         if c.busy == .connecting { return .mounting }
         if let e = c.errorText { return .failed(e) }
         let speed = c.isActive ? max(c.bytesPerSecond, activityThresholdBytesPerSecond) : 0
@@ -143,6 +144,19 @@ final class DiskListViewModel {
     }
 
     // MARK: actions
+
+    /// Quick-formats the disk as NTFS, then reconnects it. Returns an error message, or nil on success.
+    func erase(_ id: String, label: String) async -> String? {
+        guard let disk = cards.first(where: { $0.id == id })?.disk else { return S.message(for: MountError.invalidDevice) }
+        update(id) { $0.busy = .erasing; $0.errorText = nil; $0.mountPoint = nil; $0.userUnmounted = false }
+        smoothers[id] = nil; detectors[id] = nil
+        var failure: String?
+        do { _ = try await call(.erase(device: disk.deviceNode, label: label)) }
+        catch { failure = S.message(for: error) }
+        update(id) { $0.busy = nil; $0.used = 0 }
+        await connect(id)
+        return failure
+    }
 
     func mount(_ id: String) { Task { await connect(id) } }
 

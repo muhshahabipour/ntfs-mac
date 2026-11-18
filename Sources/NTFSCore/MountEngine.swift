@@ -17,6 +17,7 @@ public struct ToolPaths: Sendable {
     public var ntfs3g = "/opt/homebrew/bin/ntfs-3g"
     public var probe = "/opt/homebrew/bin/ntfs-3g.probe"
     public var ntfsfix = "/opt/homebrew/bin/ntfsfix"
+    public var mkntfs = "/opt/homebrew/sbin/mkntfs"
     public var diskutil = "/usr/sbin/diskutil"
     public var mount = "/sbin/mount"
     public var lsof = "/usr/sbin/lsof"
@@ -121,6 +122,20 @@ public actor MountEngine {
             throw MountError.failed(r.stderr.trimmingCharacters(in: .whitespacesAndNewlines))
         }
         forget(disk.id)
+    }
+
+    /// Quick-formats an *external NTFS partition* (never an internal disk, whole disk, or other filesystem).
+    public func erase(_ disk: NTFSDisk, label: String) async throws {
+        guard disk.deviceNode.wholeMatch(of: /\/dev\/disk[0-9]+s[0-9]+/) != nil else { throw MountError.invalidDevice }
+        let info = try await exec(tools.diskutil, ["info", "-plist", disk.deviceNode])
+        guard info.status == 0,
+              let plist = try? PropertyListSerialization.propertyList(from: Data(info.stdout.utf8), format: nil) as? [String: Any],
+              (plist["Internal"] as? Bool) == false,
+              (plist["Content"] as? String) == "Windows_NTFS" else { throw MountError.invalidDevice }
+
+        do { try await unmount(disk) } catch MountError.failed { /* not mounted: mkntfs refuses a busy device itself */ }
+        let r = try await exec(tools.mkntfs, ["-F", "-Q", "-L", ntfsLabel(label), disk.deviceNode])
+        guard r.status == 0 else { throw MountError.failed(r.stderr.trimmingCharacters(in: .whitespacesAndNewlines)) }
     }
 
     /// The disk was pulled out: run no commands, just clean up our bookkeeping.

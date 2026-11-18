@@ -12,11 +12,13 @@ public enum HelperRequest: Codable, Equatable, Sendable {
     case unmount(device: String)
     case diskGone(device: String)
     case releaseNative(device: String)
+    /// Quick-format a partition as NTFS. Destroys its contents.
+    case erase(device: String, label: String)
 
     var device: String {
         switch self {
         case .probe(let d), .repair(let d), .unmount(let d), .diskGone(let d), .releaseNative(let d): d
-        case .mount(let d, _): d
+        case .mount(let d, _), .erase(let d, _): d
         }
     }
 }
@@ -62,6 +64,9 @@ public actor HelperService {
                 return .done
             case .releaseNative:
                 try await engine.releaseNativeMount(NTFSDisk(id: id, label: nil, sizeBytes: 0, deviceNode: node))
+                return .done
+            case .erase(_, let label):
+                try await engine.erase(NTFSDisk(id: id, label: nil, sizeBytes: 0, deviceNode: node), label: label)
                 return .done
             case .diskGone:
                 await engine.diskDisappeared(id: id)

@@ -7,6 +7,7 @@ public enum CardState: Equatable, Sendable {
     case copying(bytesPerSecond: Double, usedFraction: Double)
     case ejecting
     case unmounting
+    case erasing
     /// Attached but deliberately not mounted (user unmounted it, or it was unmounted elsewhere).
     case unmounted
     case failed(String)

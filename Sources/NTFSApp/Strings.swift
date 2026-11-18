@@ -15,6 +15,23 @@ enum S {
     static var unmount: String { tr("Unmount", "جدا کردن اتصال") }
     static var unmounting: String { tr("Unmounting…", "در حال قطع اتصال…") }
     static var notMounted: String { tr("Not mounted", "متصل نیست") }
+    static var erasing: String { tr("Erasing…", "در حال پاک‌سازی…") }
+    static var diskTools: String { tr("Erase a Disk…", "پاک‌سازی دیسک…") }
+    static var eraseTitle: String { tr("Erase Disk", "پاک‌سازی دیسک") }
+    static var eraseIntro: String {
+        tr("Formats the disk as NTFS (works with Windows and macOS). Everything on it is permanently deleted.",
+           "دیسک را با فرمت NTFS (سازگار با ویندوز و مک) فرمت می‌کند. همهٔ اطلاعات آن برای همیشه پاک می‌شود.")
+    }
+    static var eraseNoDisks: String { tr("Connect an NTFS disk to erase it.", "برای پاک‌سازی، یک دیسک NTFS وصل کنید.") }
+    static var newName: String { tr("New name", "نام جدید") }
+    static var eraseButton: String { tr("Erase…", "پاک‌سازی…") }
+    static var cancel: String { tr("Cancel", "انصراف") }
+    static func eraseConfirm(_ name: String, _ size: String) -> String {
+        tr("“\(name)” (\(size)) will be erased and cannot be recovered. Type the disk's current name to confirm.",
+           "«\(name)» (\(size)) پاک می‌شود و قابل بازگردانی نیست. برای تأیید، نام فعلی دیسک را بنویسید.")
+    }
+    static var eraseNow: String { tr("Erase Now", "همین حالا پاک کن") }
+    static var eraseDone: String { tr("Disk erased.", "دیسک پاک شد.") }
     static var retry: String { tr("Try Again", "تلاش دوباره") }
     static var enable: String { tr("Enable", "فعال‌سازی") }
 

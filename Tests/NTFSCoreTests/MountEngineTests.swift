@@ -88,6 +88,40 @@ private func mountTable(_ mp: String) -> ProcessResult {
         #expect(runner.calls == [.init(executable: "/usr/sbin/diskutil", arguments: ["unmount", "/dev/disk4s1"])])
     }
 
+    private func infoPlist(internal isInternal: Bool, content: String) -> ProcessResult {
+        ProcessResult(status: 0, stdout: """
+        <?xml version="1.0" encoding="UTF-8"?><plist version="1.0"><dict>
+        <key>Internal</key><\(isInternal ? "true" : "false")/>
+        <key>Content</key><string>\(content)</string></dict></plist>
+        """)
+    }
+
+    @Test func eraseUnmountsThenFormatsAnExternalNTFSPartition() async throws {
+        let runner = FakeProcessRunner(results: [infoPlist(internal: false, content: "Windows_NTFS"), ProcessResult(status: 0), ProcessResult(status: 0)])
+        try await engine(runner).erase(disk, label: "  Photos ")
+        #expect(runner.calls.map(\.arguments) == [["info", "-plist", "/dev/disk4s1"], ["unmount", "/dev/disk4s1"],
+                                                  ["-F", "-Q", "-L", "Photos", "/dev/disk4s1"]])
+        #expect(runner.calls.last?.executable == "/opt/homebrew/sbin/mkntfs")
+    }
+
+    @Test func eraseRefusesInternalDisksOtherFilesystemsAndWholeDisks() async {
+        for result in [infoPlist(internal: true, content: "Windows_NTFS"), infoPlist(internal: false, content: "Apple_APFS")] {
+            let runner = FakeProcessRunner(results: [result])
+            await #expect(throws: MountError.invalidDevice) { try await engine(runner).erase(disk, label: "X") }
+            #expect(runner.calls.count == 1)
+        }
+        let whole = NTFSDisk(id: "disk4", label: nil, sizeBytes: 1, deviceNode: "/dev/disk4")
+        let runner = FakeProcessRunner()
+        await #expect(throws: MountError.invalidDevice) { try await engine(runner).erase(whole, label: "X") }
+        #expect(runner.calls.isEmpty)
+    }
+
+    @Test func labelsAreCleaned() {
+        #expect(ntfsLabel("") == "NTFS")
+        #expect(ntfsLabel("  a\nb ") == "ab")
+        #expect(ntfsLabel(String(repeating: "x", count: 50)).count == 32)
+    }
+
     @Test func missingExtensionIsReportedWhenMountNeverAppears() async {
         let runner = FakeProcessRunner(results: [ProcessResult(status: 0), ProcessResult(status: 0)],
                                        fallback: ProcessResult(status: 0, stdout: "/dev/disk3s1 on / (apfs)\n"))
