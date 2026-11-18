@@ -39,20 +39,20 @@ import Testing
 
     @Test func releaseUnmountsTheMacOSMount() async throws {
         let runner = FakeProcessRunner()
-        let engine = MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, sleep: { _ in })
+        let engine = MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, mountOptions: [], sleep: { _ in })
         try await engine.releaseNativeMount(disk)
         #expect(runner.calls == [.init(executable: "/usr/sbin/diskutil", arguments: ["unmount", "/dev/disk4s1"])])
     }
 
     @Test func releaseFailureIsReported() async {
         let runner = FakeProcessRunner(results: [ProcessResult(status: 1, stderr: "busy")])
-        let engine = MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, sleep: { _ in })
+        let engine = MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, mountOptions: [], sleep: { _ in })
         await #expect(throws: MountError.failed("busy")) { try await engine.releaseNativeMount(disk) }
     }
 
     @Test func serviceRoutesReleaseRequest() async {
         let runner = FakeProcessRunner()
-        let svc = HelperService(engine: MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, sleep: { _ in }))
+        let svc = HelperService(engine: MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, mountOptions: [], sleep: { _ in }))
         #expect(await svc.handle(.releaseNative(device: "/dev/disk4s1")) == .done)
         #expect(await svc.handle(.releaseNative(device: "/dev/disk4; x")) == .failure(.invalidDevice))
     }

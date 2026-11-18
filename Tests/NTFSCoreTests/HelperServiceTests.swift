@@ -18,7 +18,7 @@ import Testing
 
 @Suite struct HelperServiceTests {
     private func service(_ runner: FakeProcessRunner) -> HelperService {
-        HelperService(engine: MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, sleep: { _ in }))
+        HelperService(engine: MountEngine(runner: runner, files: FakeFileOps().ops, verifyAttempts: 1, mountOptions: [], sleep: { _ in }))
     }
 
     @Test func probeReturnsHealth() async {

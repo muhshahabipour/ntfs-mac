@@ -28,8 +28,20 @@ public func mountPoint(for disk: NTFSDisk, taken: Set<String>) -> String {
 }
 
 /// argv for `ntfs-3g` (never a shell string). Options verified in docs/spike-notes.md.
-public func ntfs3gArguments(device: String, mountPoint: String, volname: String) -> [String] {
-    [device, mountPoint, "-o", "local,rw,volname=\(volname)"]
+public func ntfs3gArguments(device: String, mountPoint: String, volname: String, extraOptions: [String] = []) -> [String] {
+    let options = ["local", "rw", "volname=\(volname)"] + extraOptions
+    return [device, mountPoint, "-o", options.joined(separator: ",")]
+}
+
+/// Options that make Finder copies work: files owned by the logged-in user, and macFUSE storing extended
+/// attributes itself (NTFS via ntfs-3g has none), which Finder's copy otherwise fails on.
+public func defaultMountOptions() -> [String] {
+    var options = ["allow_other", "auto_xattr"]
+    var info = stat()
+    if stat("/dev/console", &info) == 0, info.st_uid != 0 {
+        options += ["uid=\(info.st_uid)", "gid=\(info.st_gid)"]
+    }
+    return options
 }
 
 /// NTFS volume labels: at most 32 characters, no control characters; empty becomes "NTFS".

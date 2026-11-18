@@ -45,6 +45,7 @@ public actor MountEngine {
     private let tools: ToolPaths
     private let files: FileOps
     private let verifyAttempts: Int
+    private let mountOptions: [String]
     private let sleep: @Sendable (Duration) async -> Void
     private var mounted: [String: String] = [:]   // disk id -> mount point
 
@@ -52,9 +53,10 @@ public actor MountEngine {
                 tools: ToolPaths = ToolPaths(),
                 files: FileOps = .live,
                 verifyAttempts: Int = 20,
+                mountOptions: [String] = defaultMountOptions(),
                 sleep: @escaping @Sendable (Duration) async -> Void = { try? await Task.sleep(for: $0) }) {
         self.runner = runner; self.tools = tools; self.files = files
-        self.verifyAttempts = verifyAttempts; self.sleep = sleep
+        self.verifyAttempts = verifyAttempts; self.mountOptions = mountOptions; self.sleep = sleep
     }
 
     public func probe(_ disk: NTFSDisk) async throws -> VolumeHealth {
@@ -87,7 +89,7 @@ public actor MountEngine {
         let result: ProcessResult
         do {
             result = try await exec(tools.ntfs3g,
-                ntfs3gArguments(device: disk.deviceNode, mountPoint: mp, volname: sanitizedName(String(mp.dropFirst("/Volumes/".count)))))
+                ntfs3gArguments(device: disk.deviceNode, mountPoint: mp, volname: sanitizedName(String(mp.dropFirst("/Volumes/".count))), extraOptions: mountOptions))
         } catch { forget(disk.id); throw error }
         guard result.status == 0 else {
             forget(disk.id)

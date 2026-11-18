@@ -53,7 +53,7 @@ private func mountTable(_ mp: String) -> ProcessResult {
 
 @Suite struct MountEngineTests {
     private func engine(_ runner: FakeProcessRunner, files: FakeFileOps = FakeFileOps()) -> MountEngine {
-        MountEngine(runner: runner, files: files.ops, verifyAttempts: 2, sleep: { _ in })
+        MountEngine(runner: runner, files: files.ops, verifyAttempts: 2, mountOptions: [], sleep: { _ in })
     }
 
     @Test func mountsCleanDiskReadWrite() async throws {
@@ -204,5 +204,17 @@ private func mountTable(_ mp: String) -> ProcessResult {
         await e.diskDisappeared(id: "disk4s1")
         #expect(files.removed == ["/Volumes/Backup"])
         #expect(runner.calls.count == 4)   // no commands run for a vanished disk
+    }
+}
+
+@Suite struct MountOptionTests {
+    @Test func extraOptionsAreAppendedToTheOptionString() {
+        #expect(ntfs3gArguments(device: "/dev/d", mountPoint: "/Volumes/x", volname: "x", extraOptions: ["allow_other", "uid=501"])
+                == ["/dev/d", "/Volumes/x", "-o", "local,rw,volname=x,allow_other,uid=501"])
+    }
+
+    @Test func defaultOptionsEnableFinderCompatibility() {
+        let options = defaultMountOptions()
+        #expect(options.contains("auto_xattr") && options.contains("allow_other"))
     }
 }
