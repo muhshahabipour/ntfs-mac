@@ -1,4 +1,13 @@
+<p align="center"><img src="docs/images/icon.png" width="128" alt="NTFS for Mac icon"></p>
+
 # NTFS for Mac
+
+[![Release](https://img.shields.io/badge/release-v0.1-blue)](https://github.com/muhshahabipour/ntfs-mac/releases/latest)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+![macOS 15+](https://img.shields.io/badge/macOS-15%2B-blue)
+![Apple silicon](https://img.shields.io/badge/Apple%20silicon-arm64-lightgrey)
+![Swift 6](https://img.shields.io/badge/Swift-6-orange)
+![Tests](https://img.shields.io/badge/tests-78%20passing-brightgreen)
 
 A small, native macOS menu bar app that lets you **read and write NTFS disks** — built for people who move drives between a Mac and Windows and want something calm, fast and reliable (the app talks to the stable `ntfs-3g` driver instead of a bundled kernel driver).
 
@@ -8,6 +17,17 @@ A small, native macOS menu bar app that lets you **read and write NTFS disks** �
 - **Erase** (quick NTFS format) lives in the main window, behind a typed confirmation, and refuses internal disks and non-NTFS partitions.
 - **English and Persian** UI (English is the default), light / dark / auto.
 - Notifications when a transfer finishes or a disk needs attention, launch at login, and a first-run setup guide.
+
+خواندن و نوشتن روی دیسک‌های NTFS در مک، از نوار منو.
+
+<p align="center">
+  <img src="docs/images/screenshot-dark.png" alt="Disk cards in dark mode: read and write, needs repair, transferring, no disk"><br>
+  <img src="docs/images/screenshot-light.png" alt="The same cards in light mode">
+</p>
+
+*Screenshots are rendered with sample data (`NTFS --render-demo <dir>`).*
+
+**[Download](https://github.com/muhshahabipour/ntfs-mac/releases/latest)**
 
 > Personal project. Not notarized, no warranty — keep backups of important disks.
 
@@ -91,6 +111,8 @@ Probe results are logged under the `com.local.ntfs` subsystem (`log show --predi
 ## Credits and licenses
 
 Built on [macFUSE](https://macfuse.github.io) and [ntfs-3g](https://github.com/tuxera/ntfs-3g) (GPL / LGPL). This app only invokes them; it does not bundle them.
+
+The app itself is released under the [MIT License](LICENSE).
 
 ---
 
